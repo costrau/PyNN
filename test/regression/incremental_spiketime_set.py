@@ -1,4 +1,5 @@
 """Check that changing the spike_times of a SpikeSourceArray mid-simulation works."""
+from __future__ import print_function
 
 import sys
 
@@ -27,7 +28,7 @@ sim.record_v(cell2, "incremental_spiketimes_%s.v" % simulator)
 cell1.spike_times = spiketimes
 
 t = sim.run(t_step)
-print "t = ", t
+print("t = ", t)
 t = sim.run(t_step)
 
 spiketimes += 2*t_step
@@ -39,6 +40,6 @@ sim.end()
 if interactive:
     vtrace = pylab.load("incremental_spiketimes_%s.v" % simulator)[:,0]
     t = pylab.arange(0, 3*t_step+dt, dt)[:len(vtrace)]
-    print vtrace.shape
-    print t.shape
+    print(vtrace.shape)
+    print(t.shape)
     pylab.plot(t, vtrace)

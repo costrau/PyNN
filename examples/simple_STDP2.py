@@ -6,7 +6,10 @@ January 2008
 
 $Id: simple_STDP.py 607 2009-05-19 15:04:35Z apdavison $
 """
+from __future__ import print_function
 
+from builtins import str
+from builtins import range
 import numpy
 from pyNN.utility import get_script_args
 sim_name = get_script_args(1)[0]   
@@ -42,7 +45,7 @@ p1.printSpikes("Results/simple_STDP_1_%s.ras" % sim_name)
 p2.printSpikes("Results/simple_STDP_2_%s.ras" % sim_name)
 p2.print_v("Results/simple_STDP_%s.v" % sim_name)
 
-print w
+print(w)
 f = open("Results/simple_STDP_%s.w" % sim_name, 'w')
 f.write("\n".join([str(ww) for ww in w]))
 f.close()

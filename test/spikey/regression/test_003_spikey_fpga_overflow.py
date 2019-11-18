@@ -1,3 +1,5 @@
+from __future__ import print_function
+from builtins import range
 import unittest
 
 
@@ -30,7 +32,7 @@ class test_003_spikey_fpga_overflow(unittest.TestCase):
             lost, sent = pynn.getInputSpikes()
             pynn.end()
 
-            print 'no neurons / spikes in / lost / out:', noNeurons + 1, sent, lost, noSpikes
+            print('no neurons / spikes in / lost / out:', noNeurons + 1, sent, lost, noSpikes)
 
             return noSpikes
 

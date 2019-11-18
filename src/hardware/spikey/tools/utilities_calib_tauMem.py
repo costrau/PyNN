@@ -1,3 +1,8 @@
+from __future__ import division
+from __future__ import print_function
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import pyNN.hardware.spikey as p
 import numpy as np
 from scipy.optimize import curve_fit
@@ -48,7 +53,7 @@ def smoothen(array, n):
 
 
 def v(t, tau_mem, v_rest, v_reset):
-    return v_rest - (v_rest - v_reset) * np.exp(-t / tau_mem)
+    return v_rest - (v_rest - v_reset) * np.exp(old_div(-t, tau_mem))
 
 # find analog spikes in given membrane trace
 
@@ -77,12 +82,12 @@ def find_spikes(mem, time, spikesDig=[], returnDigitalSpikes=False, reportFile=N
     isiAnalog = spikesMem[1:] - spikesMem[:-1]
     isiAnalogMean = isiAnalog.mean()
 
-    print 'number of spikes (digital, analog):', len(spikesDig), len(spikesMem)
-    print 'frequency (digital, analog) [Hz]:', 1e3 / isiDigitalMean, 1e3 / isiAnalogMean
-    ratioDigAna = isiDigitalMean / isiAnalogMean
-    print 'frequency digital to analog (abs, %):', ratioDigAna, (ratioDigAna - 1) * 1e2
+    print('number of spikes (digital, analog):', len(spikesDig), len(spikesMem))
+    print('frequency (digital, analog) [Hz]:', old_div(1e3, isiDigitalMean), old_div(1e3, isiAnalogMean))
+    ratioDigAna = old_div(isiDigitalMean, isiAnalogMean)
+    print('frequency digital to analog (abs, %):', ratioDigAna, (ratioDigAna - 1) * 1e2)
     if (ratioDigAna - 1) > 5e-3:
-        print 'digital and analog time domain differ more than 0.5 %'
+        print('digital and analog time domain differ more than 0.5 %')
         spikesMem = None
         isiAnalogMean = isiDigitalMean
 
@@ -126,8 +131,8 @@ def fit_tau_refrac(trace, timestep, spikes, meanISI, noDigSpikes, reportFile=Non
     for i in range(1, len(spikes) - 1):
         # the part of the trace which is examined comprises spike i and stops
         # well before the next spike to avoid measurement failures
-        stop = int(spikes[i + 1] / timestep - 0.3 * meanISI / timestep)
-        voltage_values = trace[int(spikes[i] / timestep):stop + 1]
+        stop = int(old_div(spikes[i + 1], timestep) - old_div(0.3 * meanISI, timestep))
+        voltage_values = trace[int(old_div(spikes[i], timestep)):stop + 1]
         start = np.where(voltage_values[:20] == min(voltage_values[:20]))
         voltage_values = voltage_values[min(start[0]):]
 
@@ -139,11 +144,11 @@ def fit_tau_refrac(trace, timestep, spikes, meanISI, noDigSpikes, reportFile=Non
         n = 5
         # choose this part of the trace as reference for the trace's values at
         # resting potential
-        rest_start = int(0.2 * meanISI / timestep)
-        rest_stop = int(0.4 * meanISI / timestep)
+        rest_start = int(old_div(0.2 * meanISI, timestep))
+        rest_stop = int(old_div(0.4 * meanISI, timestep))
 
-        assert rest_stop - rest_start > 0.1 * meanISI / \
-            timestep, 'rest_start/rest_stop: {0}, {1}'.format(
+        assert rest_stop - rest_start > old_div(0.1 * meanISI, \
+            timestep), 'rest_start/rest_stop: {0}, {1}'.format(
                 rest_start, rest_stop)
 
         deriv = voltage_values[1:] - voltage_values[:-1]
@@ -158,7 +163,7 @@ def fit_tau_refrac(trace, timestep, spikes, meanISI, noDigSpikes, reportFile=Non
                 break
 
         # tau_ref value determined from measurement
-        tau_ref = (x + (n - 1) / 2) * timestep
+        tau_ref = (x + old_div((n - 1), 2)) * timestep
 
         # check if tau_ref is plausible
         voltage_smooth = smoothen(voltage_values, n)
@@ -167,7 +172,7 @@ def fit_tau_refrac(trace, timestep, spikes, meanISI, noDigSpikes, reportFile=Non
         # first and second derivative
         diffs_der1 = diffs[1:] - diffs[:-1]
         reference = smoothen(diffs_der1, n)
-        index = int(tau_ref / timestep) - 2
+        index = int(old_div(tau_ref, timestep)) - 2
         #diffs_der2 = diffs_der1[1:] - diffs_der1[:-1]
         #index = min(np.where(diffs_der2 <= max(diffs_der2[rest_start:rest_stop])[0]))
 
@@ -192,8 +197,8 @@ def fit_tau_refrac(trace, timestep, spikes, meanISI, noDigSpikes, reportFile=Non
         if debugPlot:
             import matplotlib.pyplot as plt
             if i == 5:
-                print 'measured tau:', tau_ref
-                print 'measured x:', x * timestep
+                print('measured tau:', tau_ref)
+                print('measured x:', x * timestep)
                 time = timestep * np.arange(len(voltage_values))
                 plt.figure()
                 plt.subplot(311)
@@ -219,7 +224,7 @@ def fit_tau_refrac(trace, timestep, spikes, meanISI, noDigSpikes, reportFile=Non
     tau_refrac = np.array(tau_refrac)
     tau = np.mean(tau_refrac)
     err = np.std(tau_refrac)
-    print 'refractory period is {0} +/- {1} ms'.format(tau, err)
+    print('refractory period is {0} +/- {1} ms'.format(tau, err))
     return tau, err, double_spikes
 
 
@@ -240,7 +245,7 @@ def fit_tau_mem(trace, memtime, dig_spikes, timestep, reportFile=None, debugPlot
     # skip first inter-spike interval, could be incomplete
     for i in range(1, len(spikes) - 1):
         interspikeMem = trace[
-            int(round(spikes[i] / timestep)):int(round(spikes[i + 1] / timestep))]
+            int(round(old_div(spikes[i], timestep))):int(round(old_div(spikes[i + 1], timestep)))]
         shortest = np.min([shortest, len(interspikeMem)])
         memList.append(interspikeMem)
     # cut to identical length
@@ -259,10 +264,10 @@ def fit_tau_mem(trace, memtime, dig_spikes, timestep, reportFile=None, debugPlot
 
     # cut refractory period
     timeStart = 2.0  # TODO: from ankis talk #0.2 * meanISI #TODO: detect?, see tau_refrac calib
-    timeStartSamples = int(round(timeStart / timestep))
+    timeStartSamples = int(round(old_div(timeStart, timestep)))
     # and approx. 0.5 ms before next spike
     timeStop = 0.5
-    timeStopSamples = int(round(timeStop / timestep))
+    timeStopSamples = int(round(old_div(timeStop, timestep)))
     mem = mem[timeStartSamples:-timeStopSamples]
     memStd = memStd[timeStartSamples:-timeStopSamples]
     time = (np.arange(len(mem)) + timeStartSamples) * timestep
@@ -273,7 +278,7 @@ def fit_tau_mem(trace, memtime, dig_spikes, timestep, reportFile=None, debugPlot
         return None
 
     try:  # TODO: one day curve_fit has return value for fit result status like leastsq
-        params, cov = curve_fit(v, time, mem, sigma=memStd / mem)
+        params, cov = curve_fit(v, time, mem, sigma=old_div(memStd, mem))
     except:
         report('Fit of membrane time constant failed', reportFile)
         return None
@@ -299,9 +304,9 @@ def fit_tau_mem(trace, memtime, dig_spikes, timestep, reportFile=None, debugPlot
         plt.plot(time, v(time, params[0], params[1], params[2]), 'm')
         plt.show()
 
-    print 'tau_mem:', tau_mem, '+/-', tau_mem_error
-    print 'v_rest:', v_rest, '+/-', v_rest_error
-    print 'v_reset:', v_reset, '+/-', v_reset_error
+    print('tau_mem:', tau_mem, '+/-', tau_mem_error)
+    print('v_rest:', v_rest, '+/-', v_rest_error)
+    print('v_reset:', v_reset, '+/-', v_reset_error)
 
     return tau_mem, tau_mem_error, v_rest, v_rest_error, v_reset, v_reset_error
 
@@ -317,7 +322,7 @@ def fit_dependency(neuronIDs, prefix_rawData, filename_result, overwrite_data=Tr
 
     def save_ones(neuron):
         to_save = np.concatenate(
-            (np.array([neuron]), np.ones(5), [sys.maxint]))
+            (np.array([neuron]), np.ones(5), [sys.maxsize]))
         save_to_columns(to_save, filename_result)
 
     failed_fits = []
@@ -328,7 +333,7 @@ def fit_dependency(neuronIDs, prefix_rawData, filename_result, overwrite_data=Tr
         if overwrite_data:
             os.remove(filename_result)
         else:
-            print 'File {0}.data already exists, using existing fit'.format(filename_result)
+            print('File {0}.data already exists, using existing fit'.format(filename_result))
             report('Cannot fit tau_mem dependency because file {0} already exists'.format(
                 filename_result), reportFile)
             return
@@ -378,7 +383,7 @@ def fit_dependency(neuronIDs, prefix_rawData, filename_result, overwrite_data=Tr
             # fits of membrane time constant
             result = np.polyfit(tau_mem, iLeak_inv, 2, full=True)
             pol = result[0]
-            res = result[1][0] / len(tau_mem)
+            res = old_div(result[1][0], len(tau_mem))
 
             if res > fitMaxRes:
                 report('Bad fit (residual = {0}) for neuron {1}. Will proceed to next neuron'.format(
@@ -390,9 +395,9 @@ def fit_dependency(neuronIDs, prefix_rawData, filename_result, overwrite_data=Tr
                 ([neuron], pol, [min(1. / iLeak_inv), max(1. / iLeak_inv)], [res]))
             save_to_columns(to_save, filename_result)
 
-    print 'successful fits: {0}/{1}'.format(len(neuronIDs) - len(missing_data) - len(failed_fits), len(neuronIDs) - len(missing_data))
+    print('successful fits: {0}/{1}'.format(len(neuronIDs) - len(missing_data) - len(failed_fits), len(neuronIDs) - len(missing_data)))
     if len(missing_data) > 0:
-        print 'Missing data for neurons {0}'.format(missing_data)
+        print('Missing data for neurons {0}'.format(missing_data))
 
     if len(failed_fits) > 0:
         report('Bad fit or too few data points for neurons {0}'.format(
@@ -410,7 +415,7 @@ def plot_dependency(ax, neuron, prefix_rawData, filename_result):
 
     # does raw data for neuron exist?
     if not os.path.isfile(filename_data + '.dat'):
-        print 'No data was recorded for neuron {0}'.format(neuron)
+        print('No data was recorded for neuron {0}'.format(neuron))
         return
 
     # load data
@@ -430,7 +435,7 @@ def plot_dependency(ax, neuron, prefix_rawData, filename_result):
 
     # load fit
     if not os.path.isfile(filename_result):
-        print 'no fit file with filename {0}'.format(filename_result)
+        print('no fit file with filename {0}'.format(filename_result))
         return
     fit = np.atleast_2d(np.loadtxt(filename_result, delimiter='\t'))
     assert fit.shape[
@@ -439,7 +444,7 @@ def plot_dependency(ax, neuron, prefix_rawData, filename_result):
     mask = fit[:, 0] == neuron
     if (mask == False).all():
         # if neuron not in given file, return
-        print 'no fit for neuron {0} exists in file {1}'.format(neuron, filename_result)
+        print('no fit for neuron {0} exists in file {1}'.format(neuron, filename_result))
         return
 
     # if line for this neuron just comprises zeros, return

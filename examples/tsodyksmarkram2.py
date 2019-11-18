@@ -41,7 +41,7 @@ spike_source.record()
 
 sim.run(200.0)
 
-for label,p in populations.items():
+for label,p in list(populations.items()):
     p.print_v("Results/tsodyksmarkram2_%s_%s.v" % (label, simulator_name))
     
 sim.end()

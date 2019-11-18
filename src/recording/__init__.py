@@ -7,13 +7,20 @@ internal use.
 
 $Id$
 """
+from __future__ import division
+from __future__ import absolute_import
 
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import object
+from past.utils import old_div
 import tempfile
 import logging
 import os.path
 import numpy
 import os
-import files
+from . import files
 try:
     from mpi4py import MPI
 except ImportError:
@@ -55,7 +62,7 @@ def gather(data):
         return gdata
     else:
         num_columns = data.shape[1]
-        return gdata.reshape((gdata.size/num_columns, num_columns))
+        return gdata.reshape((old_div(gdata.size,num_columns), num_columns))
   
 def gather_dict(D):
     # Note that if the same key exists on multiple nodes, the value from the

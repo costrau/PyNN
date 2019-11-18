@@ -9,6 +9,11 @@ pypcsim implementation of the PyNN API.
     December 2006-
 $Id$
 """
+from __future__ import division
+from __future__ import print_function
+from builtins import range
+from past.utils import old_div
+from builtins import object
 __version__ = "$Revision$"
 
 import sys
@@ -60,10 +65,10 @@ class NativeRNG(pyNN.random.NativeRNG):
         if n <= 0, raise an Exception."""
         distribution_type = getattr(pypcsim, distribution + "Distribution")
         if isinstance(parameters, dict):
-            dist = apply(distribution_type, (), parameters)
+            dist = distribution_type(*(), **parameters)
         else:
-            dist = apply(distribution_type, tuple(parameters), {})
-        values = [ dist.get(self.rndEngine) for i in xrange(n) ]
+            dist = distribution_type(*tuple(parameters), **{})
+        values = [ dist.get(self.rndEngine) for i in range(n) ]
         if n == 1:
             return values[0]
         else:
@@ -73,12 +78,12 @@ class NativeRNG(pyNN.random.NativeRNG):
 def list_standard_models():
     """Return a list of all the StandardCellType classes available for this simulator."""
     setup()
-    standard_cell_types = [obj for obj in globals().values() if isinstance(obj, type) and issubclass(obj, common.StandardCellType)]
+    standard_cell_types = [obj for obj in list(globals().values()) if isinstance(obj, type) and issubclass(obj, common.StandardCellType)]
     for cell_class in standard_cell_types:
         try:
             create(cell_class)
-        except Exception, e:
-            print "Warning: %s is defined, but produces the following error: %s" % (cell_class.__name__, e)
+        except Exception as e:
+            print("Warning: %s is defined, but produces the following error: %s" % (cell_class.__name__, e))
             standard_cell_types.remove(cell_class)
     return standard_cell_types
 
@@ -112,7 +117,7 @@ class WDManager(object):
                 (w_mean, w_std) = weight.parameters
                 weight.parameters = (w_factor*w_mean, w_factor*w_std)
             else:
-                print "WARNING: no conversion of the weights for this particular distribution"
+                print("WARNING: no conversion of the weights for this particular distribution")
         else:
             weight = w*w_factor
         return weight
@@ -151,18 +156,18 @@ def setup(timestep=0.1, min_delay=0.1, max_delay=10.0, **extra_params):
     For pcsim, the possible arguments are 'construct_rng_seed' and 'simulation_rng_seed'.
     """
     if simulator.state.constructRNGSeed is None:
-        if extra_params.has_key('construct_rng_seed'):
+        if 'construct_rng_seed' in extra_params:
             construct_rng_seed = extra_params['construct_rng_seed']
         else:
             construct_rng_seed = datetime.today().microsecond
         simulator.state.constructRNGSeed = construct_rng_seed
     if simulator.state.simulationRNGSeed is None:
-        if extra_params.has_key('simulation_rng_seed'):
+        if 'simulation_rng_seed' in extra_params:
             simulation_rng_seed = extra_params['simulation_rng_seed']
         else:
             simulation_rng_seed = datetime.today().microsecond
         simulator.state.simulationRNGSeed = simulation_rng_seed
-    if extra_params.has_key('threads'):
+    if 'threads' in extra_params:
         simulator.net = pypcsim.DistributedMultiThreadNetwork(
                             extra_params['threads'],
                             pypcsim.SimParameter( pypcsim.Time.ms(timestep),
@@ -194,7 +199,7 @@ def end(compatible_output=True):
 def run(simtime):
     """Run the simulation for simtime ms."""
     simulator.state.t += simtime
-    simulator.net.advance(int(simtime / simulator.state.dt ))
+    simulator.net.advance(int(old_div(simtime, simulator.state.dt) ))
     return simulator.state.t
 
 reset = common.reset
@@ -341,7 +346,7 @@ class Population(common.Population):
         else:
             self.celltype = cellclass
             if issubclass(cellclass, pypcsim.SimObject):
-                self.cellfactory = apply(cellclass, (), cellparams)
+                self.cellfactory = cellclass(*(), **cellparams)
             else:
                 raise exceptions.AttributeError('Trying to create non-existent cellclass ' + cellclass.__name__ )
         
@@ -492,7 +497,7 @@ class Population(common.Population):
         """
         """ This works nicely for PCSIM for simulator specific cells, 
             because cells (SimObject classes) are directly wrapped in python """
-        for i in xrange(0, len(self)):
+        for i in range(0, len(self)):
             obj = simulator.net.object(self.pcsim_population[i])
             if obj: apply( obj, methodname, (), arguments)
         
@@ -505,7 +510,7 @@ class Population(common.Population):
         p.cell[i][j].memb_init(vInitArray[i][j]) for all i, j.
         """
         """ PCSIM: iteration at the python level and apply"""
-        for i in xrange(0, len(self)):
+        for i in range(0, len(self)):
             obj = simulator.net.object(self.pcsim_population[i])
             if obj: apply( obj, methodname, (), arguments)
         
@@ -659,7 +664,7 @@ class Projection(common.Projection, WDManager):
             try:
                 self.syn_factory = synapse_type(delay=d, tau=tau_syn,
                                                 **plasticity_parameters)
-            except Exception, err:
+            except Exception as err:
                 err.args = ("%s\nActual arguments were: delay=%g, tau=%g, plasticity_parameters=%s" % (err.message, d, tau_syn, plasticity_parameters),) + err.args[1:]
                 raise
         else:

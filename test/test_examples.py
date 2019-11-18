@@ -1,7 +1,10 @@
 """ Master script for running examples.
 $Id$
 """
+from __future__ import print_function
 
+from builtins import zip
+from builtins import range
 import subprocess, sys, glob, os, re
 import numpy as N
 import logging
@@ -93,8 +96,8 @@ def compare_traces(script, mse_threshold, engines):
                     try:
                         position = N.array([int(line.split()[1]) for line in trace]) # take second column
                     except IndexError:
-                        print engine
-                        print line
+                        print(engine)
+                        print(line)
                         raise
                     trace = N.array([float(line.split()[0]) for line in trace]) # take first column 
                     trace = sortTracesByCells(trace, position)
@@ -167,8 +170,8 @@ def compare_rasters(script,mse_threshold,engines):
                     try:
                         position = N.array([int(line.split()[1]) for line in raster]) # take second column
                     except IndexError:
-                        print engine
-                        print line
+                        print(engine)
+                        print(line)
                         raise
                     raster = N.array([float(line.split()[0]) for line in raster]) # take first column 
                     raster = sortTracesByCells(raster, position)
@@ -187,7 +190,7 @@ def compare_rasters(script,mse_threshold,engines):
                 l1 = len(raster1); l2 = len(raster2)
                 if l1 > 0 and l2 > 0 :
                     diff = []
-                    for idx in xrange(len(raster1)):
+                    for idx in range(len(raster1)):
                         diff.append(N.abs(raster1[idx]-raster2).min())
                     mse += N.sqrt(N.mean(N.square(N.array(diff))))
                 else:
@@ -211,7 +214,7 @@ if __name__ == "__main__":
     for engine in engine_list:
         try:
             exec("import pyNN.%s" % engine)
-        except ImportError, errmsg:
+        except ImportError as errmsg:
             engine_list.remove(engine)
             logging.warning("Unable to use %s: %s" % (engine, errmsg))
     if len(engine_list) < 2:
@@ -237,13 +240,13 @@ if __name__ == "__main__":
     
     if len(sys.argv) > 1:
         for item in sys.argv[1:]:
-            if item in thresholds_v.keys():
+            if item in list(thresholds_v.keys()):
                 scripts_v.append(item)
-            if item in thresholds_ras.keys():
+            if item in list(thresholds_ras.keys()):
                 scripts_ras.append(item)
     else:
-        scripts_v   = thresholds_v.keys()
-        scripts_ras = thresholds_ras.keys()
+        scripts_v   = list(thresholds_v.keys())
+        scripts_ras = list(thresholds_ras.keys())
 
     logging.debug("Running the following examples: %s,%s using engines %s" % (scripts_v, scripts_ras,engine_list))
     

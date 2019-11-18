@@ -1,3 +1,6 @@
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import unittest
 
 
@@ -12,7 +15,7 @@ def plotVoltageAndSpikes(pylab, t_mem, v_mem, *args, **kwargs):
     Keyword arguments:
         nrn_idx_lim -- limit for neuron indices range in plot, e.g. [0,192]
     """
-    if 'nrn_idx_lim' in kwargs.keys():
+    if 'nrn_idx_lim' in list(kwargs.keys()):
         nrn_idx_lim = kwargs['nrn_idx_lim']
     else:
         nrn_idx_lim = [0, 192]
@@ -71,7 +74,7 @@ class test_valid_param_config_change(unittest.TestCase):
         duration = stim_offset + ((stim_num + 1) * stim_isi)
 
         # neuron order: {0, 2, ..., 190, 1, 3, ..., 191, 192, 193, ... 343}
-        neuron_order = range(0, 191, 2) + range(1, 192, 2) + range(192, 384, 1)
+        neuron_order = list(range(0, 191, 2)) + list(range(1, 192, 2)) + list(range(192, 384, 1))
         if with_figure:
             pynn.setup(neuronPermutation=neuron_order, useUsbAdc=True)
         else:
@@ -146,10 +149,10 @@ class test_valid_param_config_change(unittest.TestCase):
         # let's see what we've got
         assert(pre_spikes_count_even > 0)
         assert(pst_spikes_count_uneven > 0)
-        assert(pre_spikes_count_uneven / pre_spikes_count_even < 0.01)
-        assert(pst_spikes_count_even / pst_spikes_count_uneven < 0.01)
-        assert(pre_spikes_count_uneven / pst_spikes_count_uneven < 0.01)
-        assert(pst_spikes_count_even / pre_spikes_count_even < 0.01)
+        assert(old_div(pre_spikes_count_uneven, pre_spikes_count_even) < 0.01)
+        assert(old_div(pst_spikes_count_even, pst_spikes_count_uneven) < 0.01)
+        assert(old_div(pre_spikes_count_uneven, pst_spikes_count_uneven) < 0.01)
+        assert(old_div(pst_spikes_count_even, pre_spikes_count_even) < 0.01)
 
 
 class test_invalid_param_config_change_hidx(unittest.TestCase):
@@ -187,7 +190,7 @@ class test_invalid_param_config_change_hidx(unittest.TestCase):
         duration = stim_offset + ((stim_num + 1) * stim_isi)
 
         # neuron order: {0, 2, ..., 190, 1, 3, ..., 191, 192, 193, .., 383}
-        neuron_order = range(0, 191, 2) + range(1, 192, 2) + range(192, 384, 1)
+        neuron_order = list(range(0, 191, 2)) + list(range(1, 192, 2)) + list(range(192, 384, 1))
         if with_figure:
             pynn.setup(neuronPermutation=neuron_order, useUsbAdc=True)
         else:
@@ -263,8 +266,8 @@ class test_invalid_param_config_change_hidx(unittest.TestCase):
         # let's see what we've got
         assert(pre_spikes_count_fst > 0)
         assert(pre_spikes_count_snd > 0)
-        assert(hidx_spikes_count_fst / pre_spikes_count_fst < 0.01)
-        assert(hidx_spikes_count_snd / pre_spikes_count_snd < 0.01)
+        assert(old_div(hidx_spikes_count_fst, pre_spikes_count_fst) < 0.01)
+        assert(old_div(hidx_spikes_count_snd, pre_spikes_count_snd) < 0.01)
 
 
 class test_invalid_param_config_change_lidx(unittest.TestCase):
@@ -302,7 +305,7 @@ class test_invalid_param_config_change_lidx(unittest.TestCase):
         duration = stim_offset + ((stim_num + 1) * stim_isi)
 
         # neuron order: {0, 2, ..., 190, 1, 3, ..., 191, 192, 193, .., 383}
-        neuron_order = range(0, 191, 2) + range(1, 192, 2) + range(192, 384, 1)
+        neuron_order = list(range(0, 191, 2)) + list(range(1, 192, 2)) + list(range(192, 384, 1))
         if with_figure:
             pynn.setup(neuronPermutation=neuron_order, useUsbAdc=True)
         else:
@@ -378,8 +381,8 @@ class test_invalid_param_config_change_lidx(unittest.TestCase):
         # let's see what we've got
         assert(pre_spikes_count_fst > 0)
         assert(pre_spikes_count_snd > 0)
-        assert(lidx_spikes_count_fst / pre_spikes_count_fst < 0.01)
-        assert(lidx_spikes_count_snd / pre_spikes_count_snd < 0.01)
+        assert(old_div(lidx_spikes_count_fst, pre_spikes_count_fst) < 0.01)
+        assert(old_div(lidx_spikes_count_snd, pre_spikes_count_snd) < 0.01)
 
 if __name__ == "__main__":
     unittest.main()

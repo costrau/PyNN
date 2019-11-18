@@ -1,3 +1,5 @@
+from __future__ import print_function
+from builtins import range
 import unittest
 import numpy as np
 
@@ -11,7 +13,7 @@ class test_mem_calib(unittest.TestCase):
         self.doPlot = False
         self.voltageRange = np.arange(-80.0, -44.5, 3.5)
         self.pins = 4
-        self.mappingOffsetRange = range(192)
+        self.mappingOffsetRange = list(range(192))
         self.runtime = 2000.0
         self.limFreq = 1.0
 
@@ -72,7 +74,7 @@ class test_mem_calib(unittest.TestCase):
 
             slope, offset, res = self.fitData(resultsOnePin)
 
-            print 'pin', pin, 'fit slope, offset, residual:', slope, offset, res
+            print('pin', pin, 'fit slope, offset, residual:', slope, offset, res)
             self.assertTrue(abs(1 - slope) < 0.1,
                             'output pin fit slope is very different from 1')
             self.assertTrue(abs(offset) < 3.0,
@@ -97,7 +99,7 @@ class test_mem_calib(unittest.TestCase):
 
             slope, offset, res = self.fitData(resultsOneNeuron)
 
-            print 'neuron', mappingOffset, 'fit slope, offset, residual:', slope, offset, res
+            print('neuron', mappingOffset, 'fit slope, offset, residual:', slope, offset, res)
             self.assertTrue(abs(1 - slope) < 1.0,
                             'output pin fit slope is very different from 1')
             self.assertTrue(abs(offset) < 20.0,

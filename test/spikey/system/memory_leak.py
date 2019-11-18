@@ -1,3 +1,5 @@
+from __future__ import print_function
+from builtins import range
 import pyNN.hardware.spikey as pynn
 loops = 100
 runtime = 10 * 1000.0
@@ -28,9 +30,9 @@ def emulate():
     spikes = neuron.getSpikes()
     mem = pynn.membraneOutput
 
-    print 'spikes out', len(spikes)
-    print 'spikes in', len(spikesInI), len(spikesInE)
-    print 'mem data points', len(mem)
+    print('spikes out', len(spikes))
+    print('spikes in', len(spikesInI), len(spikesInE))
+    print('mem data points', len(mem))
 
     pynn.end()
 

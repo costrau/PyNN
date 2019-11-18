@@ -24,7 +24,13 @@ modules.
     
 $Id$
 """
+from __future__ import division
 
+from builtins import zip
+from builtins import range
+from past.builtins import basestring
+from past.utils import old_div
+from builtins import object
 import logging
 import pypcsim
 import types
@@ -75,12 +81,12 @@ def reset():
     
 # --- For implementation of access to individual neurons' parameters -----------
 
-class ID(long, common.IDMixin):
+class ID(int, common.IDMixin):
     __doc__ = common.IDMixin.__doc__
 
     def __init__(self, n):
         """Create an ID object with numerical value `n`."""
-        long.__init__(n)
+        int.__init__(n)
         common.IDMixin.__init__(self)
     
     def _pcsim_cell(self):
@@ -97,7 +103,7 @@ class ID(long, common.IDMixin):
         pcsim_cell = self._pcsim_cell()
         pcsim_parameters = {}
         if self.is_standard_cell():
-            parameter_names = [D['translated_name'] for D in self.cellclass.translations.values()]
+            parameter_names = [D['translated_name'] for D in list(self.cellclass.translations.values())]
         else:
             parameter_names = [] # for native cells, is there a way to get their list of parameters?
         
@@ -108,9 +114,9 @@ class ID(long, common.IDMixin):
             else:
                 try:
                     pcsim_parameters[translated_name] = getattr(pcsim_cell, translated_name)
-                except AttributeError, e:
+                except AttributeError as e:
                     raise AttributeError("%s. Possible attributes are: %s" % (e, dir(pcsim_cell)))
-        for k,v in pcsim_parameters.items():
+        for k,v in list(pcsim_parameters.items()):
             if isinstance(v, pypcsim.StdVectorDouble):
                 pcsim_parameters[k] = list(v)
         return pcsim_parameters
@@ -118,7 +124,7 @@ class ID(long, common.IDMixin):
     def set_native_parameters(self, parameters):
         """Set parameters of the PCSIM cell model from a dictionary."""
         simobj = self._pcsim_cell()
-        for name, value in parameters.items():
+        for name, value in list(parameters.items()):
             if hasattr(self.cellclass, 'setterMethods') and name in self.cellclass.setterMethods:
                 setterMethod = self.cellclass.setterMethods[name]
                 getattr(simobj, setterMethod)(value)
@@ -200,7 +206,7 @@ class Connection(object):
         """Synaptic weight in nA or µS."""
         return self.weight_unit_factor*self.pcsim_connection.W
     def _set_weight(self, w):
-        self.pcsim_connection.W = w/self.weight_unit_factor
+        self.pcsim_connection.W = old_div(w,self.weight_unit_factor)
     weight = property(fget=_get_weight, fset=_set_weight)
     
     def _get_delay(self):
@@ -272,7 +278,7 @@ class ConnectionManager(object):
         `delays`  -- a list/1D array of connection delays, or a single delay.
                      Must have the same length as `targets`.
         """
-        if not isinstance(source, (int, long)) or source < 0:
+        if not isinstance(source, int) or source < 0:
             errmsg = "Invalid source ID: %s" % source
             raise common.ConnectionError(errmsg)
         if not common.is_listlike(targets):
@@ -305,7 +311,7 @@ class ConnectionManager(object):
             syn_factory.delay = delay*0.001 # ms --> s
             try:
                 c = net.connect(source, target, syn_factory)
-            except RuntimeError, e:
+            except RuntimeError as e:
                 raise common.ConnectionError(e)
             if target.local:
                 self.connections.append(Connection(source, target, net.object(c), 1.0/weight_scale_factor))
@@ -360,7 +366,7 @@ class ConnectionManager(object):
                 addr = (c.source-offset[0], c.target-offset[1])
                 try:
                     val = value[addr]
-                except IndexError, e:
+                except IndexError as e:
                     raise IndexError("%s. addr=%s" % (e, addr))
                 if numpy.isnan(val):
                     raise Exception("Array contains no value for synapse from %d to %d" % (c.source, c.target))

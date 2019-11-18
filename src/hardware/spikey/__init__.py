@@ -32,9 +32,16 @@
 # All lower hardware modules will use the data stored in (b)!
 # *******************************************************************************
 
+from __future__ import division
+from __future__ import absolute_import
+
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import sys
 import os
-if os.environ.has_key('PYNN_HW_PATH'):
+if 'PYNN_HW_PATH' in os.environ:
     pynn_hw_path = os.environ['PYNN_HW_PATH']
 else:
     raise EnvironmentError(
@@ -55,7 +62,8 @@ import numpy
 import types
 import time
 import fcntl
-import sets
+if sys.version_info.major < 3:
+    import sets
 
 from pyNN import common
 from pyNN import utility
@@ -64,14 +72,14 @@ import pyhal_s1v2 as hardware
 import pyhal_neurotypes as neurotypes
 import hwconfig_default_s1v2 as hwconfig_default
 
-import simulator
+from . import simulator
 common.simulator = simulator
 
-from population import *
-from projection import *
-from cells import *
-from synapses import *
-from simulator import *
+from .population import *
+from .projection import *
+from .cells import *
+from .synapses import *
+from .simulator import *
 
 
 # dummy function that always returns False
@@ -208,12 +216,12 @@ def setup(timestep=0.1, min_delay=0.1, max_delay=0.1, debug=False,
     startTime = time.time()
 
     # instantiate logger
-    if 'loglevel' in extra_params.keys():
+    if 'loglevel' in list(extra_params.keys()):
         loglevel = extra_params['loglevel']
     else:
         loglevel = 2  # INFO
 
-    if 'logfile' in extra_params.keys():
+    if 'logfile' in list(extra_params.keys()):
         logfile = extra_params['logfile']
     else:
         logfile = 'logfile.txt'
@@ -221,7 +229,7 @@ def setup(timestep=0.1, min_delay=0.1, max_delay=0.1, debug=False,
     logger.loggerAppendFile(logfile)
     logger.loggerSetLevel(loglevel)
 
-    if extra_params.has_key('dryRun') and extra_params['dryRun']:
+    if 'dryRun' in extra_params and extra_params['dryRun']:
         _dryRun = True
 
     # print the current spikey chip version
@@ -375,8 +383,8 @@ def setup(timestep=0.1, min_delay=0.1, max_delay=0.1, debug=False,
     _stationDict = workstation_control.getWorkstation(
         workStationName, _isFirstSetup)
     _isFirstSetup = False
-    for k in _stationDict.keys():
-        if _hardwareParameters.has_key(k):
+    for k in list(_stationDict.keys()):
+        if k in _hardwareParameters:
             if (len(k) > 3) and (k[:4] == 'vout'):
                 _hardwareParameters[k] = _stationDict[k]
             else:
@@ -397,7 +405,7 @@ def setup(timestep=0.1, min_delay=0.1, max_delay=0.1, debug=False,
     # check if programmable output pin is connected to scope
     acquisitionChannel = -1
     aquisitionTrigger = -1
-    for channel in _hardwareParameters['acquisitionDeviceInputs'].keys():
+    for channel in list(_hardwareParameters['acquisitionDeviceInputs'].keys()):
         if int(_hardwareParameters['acquisitionDeviceInputs'][channel]) == 8:
             acquisitionChannel = int(channel[-1])
             # break
@@ -492,20 +500,20 @@ def run(simtime=0, **extra_params):
 
     replay = False
     voltageOnTestPin = None
-    if extra_params.has_key('replay'):
+    if 'replay' in extra_params:
         replay = extra_params['replay']
-    if extra_params.has_key('voltageOnTestPin'):
+    if 'voltageOnTestPin' in extra_params:
         voltageOnTestPin = extra_params['voltageOnTestPin']
 
     global _retrieveWeights
     global _retrieveCorrelationFlags
     _retrieveWeights = None
     _retrieveCorrelationFlags = None
-    if extra_params.has_key('retrieveWeights'):
+    if 'retrieveWeights' in extra_params:
         retrieveWeights = extra_params['retrieveWeights']
-    if extra_params.has_key('retrieveCorrelationFlags'):
+    if 'retrieveCorrelationFlags' in extra_params:
         retrieveCorrelationFlags = extra_params['retrieveCorrelationFlags']
-    if extra_params.has_key('translateToBioVoltage'):
+    if 'translateToBioVoltage' in extra_params:
         translateToBioVoltage = extra_params['translateToBioVoltage']
     else:
         translateToBioVoltage = True
@@ -588,7 +596,7 @@ def run(simtime=0, **extra_params):
 
         if (_neuronsChanged or _synapsesChanged) and (voltageOnTestPin in range(hardware.hwa.numBlocks() * hardware.hwa.numVoutsPerBlock())):
             hardware.assignVoltage2TestPin(voltageOnTestPin % hardware.hwa.numVoutsPerBlock(
-            ), int(voltageOnTestPin / hardware.hwa.numVoutsPerBlock()))
+            ), int(old_div(voltageOnTestPin, hardware.hwa.numVoutsPerBlock())))
 
         _neuronsChanged = False
         _synapsesChanged = False
@@ -645,8 +653,8 @@ def run(simtime=0, **extra_params):
 
     # ms in HTD; delay between ADC trigger and replay of playback memory
     offsetTriggerExp = _hardwareParameters['acquisitionTriggerOffset'] * 1e3
-    samplingDuration = simtime / \
-        _hardwareParameters['speedup'] - offsetTriggerExp  # ms in HTD
+    samplingDuration = old_div(simtime, \
+        _hardwareParameters['speedup']) - offsetTriggerExp  # ms in HTD
     # instantiate the USB ADC device
     if _useUsbAdc:
         startTime = time.time()
@@ -669,8 +677,8 @@ def run(simtime=0, **extra_params):
         _dt = 1 / 96.0 / 1000.0  # ADC has 96MHz clock
         membraneOutput = hardware.readUsbAdc(
             _hardwareParameters['adcCalibFactor'], _hardwareParameters['adcCalibOffset'])
-        lowerIndex = int(round(-offsetTriggerExp / _dt))
-        higherIndex = int(round(samplingDuration / _dt))
+        lowerIndex = int(round(old_div(-offsetTriggerExp, _dt)))
+        higherIndex = int(round(old_div(samplingDuration, _dt)))
         membraneOutput = membraneOutput[lowerIndex:higherIndex + 1]
         myLogger.debug('acquired %i samples which corresponds to %.2fms' % (len(
             membraneOutput), (len(membraneOutput) - 1) * _dt * _hardwareParameters['speedup']))
@@ -684,11 +692,11 @@ def run(simtime=0, **extra_params):
     def writeSpikeData(recCells, recFilenames, spikeData):
 
         filenameToNeuronList = {}
-        for filename in sets.Set(recFilenames):
+        for filename in recFilenames:
             filenameToNeuronList[filename] = []
         for neuron, filename in zip(recCells, recFilenames):
             filenameToNeuronList[filename].append(neuron)
-        for filename, neuronlist in filenameToNeuronList.items():
+        for filename, neuronlist in list(filenameToNeuronList.items()):
             if filename in ['', None]:
                 continue
             # Even if there is no spike data, we don't want to throw
@@ -741,7 +749,7 @@ def run(simtime=0, **extra_params):
             # consequently only the rightmost pins must be used:
             neuronsPerBlock = hardware.hwa.numNeuronsPerBlock()
             recordPin = recordedNeuron % 4 + \
-                int(recordedNeuron / neuronsPerBlock) * 4
+                int(old_div(recordedNeuron, neuronsPerBlock)) * 4
 
             if hardware.hwa.calibOutputPins:
                 membraneOutput = numpy.polyval(hardware.hwa.outputPinsFit[
@@ -786,7 +794,7 @@ def run(simtime=0, **extra_params):
             f = open(recordFilename, 'w')
             myLogger.info('Recording ' + str(len(membraneOutput)
                                              ) + ' samples to ' + recordFilename)
-            for t in xrange(len(membraneOutput)):  # TODO: use numpy savetxt!
+            for t in range(len(membraneOutput)):  # TODO: use numpy savetxt!
                 f.write(str(membraneOutput[t]) + '\t' +
                         str(_memPot_recordedNeurons[0]) + '\n')
             f.close()
@@ -924,11 +932,11 @@ def create(cellclass, cellparams=None, n=1, **extra_params):
 
     if not _calledSetup:
         raise Exception("ERROR: Call function 'setup(...)' first!")
-    if extra_params.has_key('param_dict'):
+    if 'param_dict' in extra_params:
         myLogger.warn(
             "The argument 'param_dict' soon will not be supported anymore, use 'cellparams' instead!")
         cellparams = extra_params['param_dict']
-    if extra_params.has_key('paramDict'):
+    if 'paramDict' in extra_params:
         myLogger.warn(
             "The argument 'paramDict' soon will not be supported anymore, use 'cellparams' instead!")
         cellparams = extra_params['paramDict']
@@ -941,7 +949,7 @@ def create(cellclass, cellparams=None, n=1, **extra_params):
         oldsize = hardware.net.size()
         returnList = []
         indexCount = oldsize
-        for i in xrange(n):
+        for i in range(n):
             # map from bio to hardware index
             hardware.hwa.hardwareIndex(oldsize + i)
             hardneuron = cellclass(cellparams)
@@ -956,7 +964,7 @@ def create(cellclass, cellparams=None, n=1, **extra_params):
     elif cellclass in [SpikeSourcePoisson, SpikeSourceArray]:
         returnList = []
         # print "creating ", cellclass, "with", cellparams
-        for i in xrange(n):
+        for i in range(n):
             ss = cellclass(cellparams)
             index = -1 - numpy.size(_externalInputs)
             _externalInputs.append(ss)
@@ -992,7 +1000,7 @@ def connect(source, target, weight=None, delay=None, synapse_type=None, p=1, rng
     if (type(target) != type([])) and (not isinstance(source, numpy.ndarray)):
         target = [target]
 
-    if "synapse_dynamics" in extra_params.keys() and extra_params["synapse_dynamics"]:
+    if "synapse_dynamics" in list(extra_params.keys()) and extra_params["synapse_dynamics"]:
         if extra_params["synapse_dynamics"].fast:
             if type(extra_params["synapse_dynamics"].fast) != TsodyksMarkramMechanism:
                 raise Exception(
@@ -1040,7 +1048,7 @@ def connect(source, target, weight=None, delay=None, synapse_type=None, p=1, rng
                     rarr = rng.uniform(0., 1., len(target))
                 else:   # use the default RNG
                     rarr = _globalRNG.uniform(0., 1., len(target))
-                if type(rarr) is types.FloatType:
+                if type(rarr) is float:
                     rarr = [rarr]
             for j, tgt in enumerate(target):
                 if p >= 1 or rarr[j] < p:
@@ -1050,7 +1058,7 @@ def connect(source, target, weight=None, delay=None, synapse_type=None, p=1, rng
                                      tgt, weight, STDP=STDP, STP=STP)
                     numConns += 1
 
-    except Exception, e:
+    except Exception as e:
         raise common.ConnectionError(e)
     return numConns
 
@@ -1071,11 +1079,11 @@ def set(cells, cellclass, param, val=None):
 
     if val is not None:
         param = {param: val}
-    if type(cells) != types.ListType:
+    if type(cells) != list:
         cells = [cells]
     for c in cells:
         for key in param:
-            if not c.cell.parameters.has_key(key):
+            if key not in c.cell.parameters:
                 raise Exception('ERROR: Cell ' + str(c) +
                                 ' has no parameter ' + str(key) + '!')
         c.cell.parameters.update(param)
@@ -1118,12 +1126,12 @@ def record(source, filename, **extra_params):
     global _spikes_recordedNeurons
     global _spikes_recordFilenames
 
-    if type(source) != types.ListType:
+    if type(source) != list:
         source = [source]
 
     for src in source:
         if type(src.cell) == IF_facets_hardware1:
-            if src >= hardware.net.size:
+            if src >= hardware.net.size():
                 raise Exception(
                     "ERROR: Invalid neuron index for spike recording!")
             if (not hardware.hwa.hardwareIndex(src) in recordable) and (not _suppressRecWarnings):
@@ -1152,7 +1160,7 @@ def stopRecording(source):
     global _spikes_recordedNeurons
     global _spikes_recordFilenames
 
-    if type(source) != types.ListType:
+    if type(source) != list:
         source = [source]
 
     for src in source:
@@ -1162,7 +1170,7 @@ def stopRecording(source):
         if src >= hardware.net.size:
             raise Exception("ERROR: Invalid neuron index for spike recording!")
 
-        for i in xrange(len(_spikes_recordedNeurons)):
+        for i in range(len(_spikes_recordedNeurons)):
             if _spikes_recordedNeurons[i] == src:
                 _spikes_recordedNeurons.remove(src)
                 _spikes_recordFilenames.remove(_spikes_recordFilenames[i])
@@ -1261,7 +1269,7 @@ class ID(int, common.IDMixin):
         return inst
 
     def __getattr__(self, name):
-        if self.cell.parameters.has_key(name):
+        if name in self.cell.parameters:
             return self.cell.parameters[name]
         else:
             return object.__getattribute__(self, name)
@@ -1303,7 +1311,7 @@ def findRecordableNeurons(neuronList):
     except:
         myLogger.warn(
             "Can't retrieve recordable neurons. Assuming all as recordable.")
-        tmp = range(hardware.numNeurons())
+        tmp = list(range(hardware.numNeurons()))
     recNeurons = []
     for n in neuronList:
         if hardware.hwa.hardwareIndex(n) in tmp:

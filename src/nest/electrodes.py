@@ -8,10 +8,12 @@ Classes:
 
 $Id$
 """
+from __future__ import absolute_import
 
+from builtins import object
 import nest
 import numpy
-from simulator import state
+from .simulator import state
 from pyNN.random import NumpyRNG, NativeRNG
 from pyNN.common import Population
 

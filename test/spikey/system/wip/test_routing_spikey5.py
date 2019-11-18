@@ -1,3 +1,6 @@
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import unittest
 # TODO
 # - Test for correlation in spiking. Right now just the number of spikes are
@@ -44,7 +47,7 @@ class test_adjacent_block_connection(unittest.TestCase):
         #                    sil_neuron
         #======================================================================
         # there shouldn't be a connection between sil_neuron and pst_neuron
-        neuron_order = [0, 1, 192] + range(2, 192, 1) + range(193, 384)
+        neuron_order = [0, 1, 192] + list(range(2, 192, 1)) + list(range(193, 384))
         if with_figure:
             pynn.setup(neuronPermutation=neuron_order, useUsbAdc=True)
         else:
@@ -138,7 +141,7 @@ class test_adjacent_block_crosstalk(unittest.TestCase):
         # stim ==> sil_neuron
         #======================================================================
         # there shouldn't be a connection between sil_neuron and pst_neuron
-        neuron_order = [0, 1, 192] + range(2, 192, 1) + range(193, 384)
+        neuron_order = [0, 1, 192] + list(range(2, 192, 1)) + list(range(193, 384))
         if with_figure:
             pynn.setup(neuronPermutation=neuron_order, useUsbAdc=True)
         else:
@@ -228,7 +231,7 @@ class test_same_block_connection(unittest.TestCase):
         #                    sil_neuron
         #======================================================================
         # there shouldn't be a connection between sil_neuron and pst_neuron
-        neuron_order = range(0, 384, 1)
+        neuron_order = list(range(0, 384, 1))
         if with_figure:
             pynn.setup(neuronPermutation=neuron_order, useUsbAdc=True)
         else:
@@ -322,7 +325,7 @@ class test_same_block_crosstalk(unittest.TestCase):
         # stim ==> sil_neuron
         #======================================================================
         # there shouldn't be a connection between sil_neuron and pst_neuron
-        neuron_order = range(0, 384, 1)
+        neuron_order = list(range(0, 384, 1))
         if with_figure:
             pynn.setup(neuronPermutation=neuron_order, useUsbAdc=True)
         else:
@@ -469,9 +472,9 @@ class TestZeroWeightConnection(unittest.TestCase):
             pylab.ylabel("Mean membrane voltage [mV]")
             pylab.errorbar(x_val, y_val, yerr=y_err, fmt='o')
             pylab.show()
-        assert(((u_run0 - u_run1) / du_run0) > 0.2)
-        assert(((u_run0 - u_run2) / du_run0) > 0.2)
-        assert(abs((u_run2 - u_run1) / du_run0) < 0.2)
+        assert((old_div((u_run0 - u_run1), du_run0)) > 0.2)
+        assert((old_div((u_run0 - u_run2), du_run0)) > 0.2)
+        assert(abs(old_div((u_run2 - u_run1), du_run0)) < 0.2)
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import pyNN.hardware.spikey as pynn
 
 
@@ -21,7 +22,7 @@ def test_spikey5_allneurons():
     pynn.run(runtime)
 
     spikes = neurons.getSpikes()
-    print 'spikes from', len(np.unique(spikes)), 'different neurons'
+    print('spikes from', len(np.unique(spikes)), 'different neurons')
     # TODO: check for spikes from all neurons
 
     pynn.end()

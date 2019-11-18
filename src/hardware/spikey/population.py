@@ -1,3 +1,8 @@
+from future.utils import raise_
+from builtins import zip
+from builtins import str
+from builtins import range
+from builtins import object
 import pylogging as pylog
 myLogger = pylog.get("PyN.pop")
 
@@ -16,7 +21,7 @@ import pyNN.hardware.spikey
 ##  PyNN Object-Oriented API  ##
 ################################
 
-class PopulationIterator:
+class PopulationIterator(object):
     '''
     Implementation of an iterator supporting calls like 'for cell in population:'
     '''
@@ -28,7 +33,7 @@ class PopulationIterator:
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         if self.index >= self.target.size:
             raise StopIteration
         self.index = self.index + 1
@@ -106,8 +111,8 @@ class Population(common.Population):
                                     " not in " + self.label)
             return self.cell[addr]
         else:
-            raise common.InvalidDimensionsError, "Population has %d dimensions. Address was %s" % (
-                self.ndim, str(addr))
+            raise_(common.InvalidDimensionsError, "Population has %d dimensions. Address was %s" % (
+                self.ndim, str(addr)))
 
     def __len__(self):
         """Returns the total number of cells in the population."""

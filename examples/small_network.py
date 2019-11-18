@@ -7,6 +7,7 @@ May 2006
 $Id$
 
 """
+from __future__ import print_function
 
 import numpy
 from pyNN.utility import get_script_args
@@ -60,7 +61,7 @@ run(simtime)
 cells.printSpikes("Results/small_network_%s.ras" % simulator_name)
 cells.print_v("Results/small_network_%s.v" % simulator_name)
 
-print "Mean firing rate: ", cells.meanSpikeCount()*1000.0/simtime, "Hz"
+print("Mean firing rate: ", cells.meanSpikeCount()*1000.0/simtime, "Hz")
 
 # === Clean up and quit ========================================================
 

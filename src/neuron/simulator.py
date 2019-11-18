@@ -27,6 +27,10 @@ modules.
 $Id$
 """
 
+from builtins import zip
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 from pyNN import __path__ as pyNN_path
 from pyNN import common, random
 import platform
@@ -87,7 +91,7 @@ def nativeRNG_pick(n, rng, distribution='uniform', parameters=[0,1]):
     """
     native_rng = h.Random(0 or rng.seed)
     rarr = [getattr(native_rng, distribution)(*parameters)]
-    rarr.extend([native_rng.repick() for j in xrange(n-1)])
+    rarr.extend([native_rng.repick() for j in range(n-1)])
     return numpy.array(rarr)
 
 def h_property(name):
@@ -250,7 +254,7 @@ class ID(int, common.IDMixin):
     
     def set_native_parameters(self, parameters):
         """Set parameters of the NEURON cell model from a dictionary."""
-        for name, val in parameters.items():
+        for name, val in list(parameters.items()):
             setattr(self._cell, name, val)
         
 
@@ -356,7 +360,7 @@ class Connection(object):
         self.post2wa.threshold = 1
         self.post2wa.delay = self.nc.delay * ddf
         self.post2wa.weight[0] = -1
-        for name, value in parameters.items():
+        for name, value in list(parameters.items()):
             setattr(self.weight_adjuster, name, value)
         # setpointer
         i = len(h.plastic_connections)
@@ -541,7 +545,7 @@ class ConnectionManager(object):
                 addr = (c.source-offset[0], c.target-offset[1])
                 try:
                     val = value[addr]
-                except IndexError, e:
+                except IndexError as e:
                     raise IndexError("%s. addr=%s" % (e, addr))
                 if numpy.isnan(val):
                     raise Exception("Array contains no value for synapse from %d to %d" % (c.source, c.target))

@@ -7,9 +7,11 @@ Classes:
 
 $Id$
 """
+from __future__ import absolute_import
 
+from builtins import object
 from brian import ms, nA, network_operation
-from simulator import state, net
+from .simulator import state, net
 import numpy
 
 current_sources = []

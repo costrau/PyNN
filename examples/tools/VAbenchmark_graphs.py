@@ -1,14 +1,18 @@
 """
 Plot graphs showing the results of running the VAbenchmarks.py script.
 """
+from __future__ import division
+from __future__ import print_function
 
+from builtins import zip
+from past.utils import old_div
 import pylab, sys
 import numpy
 from NeuroTools import signals, plotting
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
 if len(sys.argv) < 2:
-    print "Usage: python VAbenchmark_graphs.py <benchmark>\n\nwhere <benchmark> is either CUBA or COBA."
+    print("Usage: python VAbenchmark_graphs.py <benchmark>\n\nwhere <benchmark> is either CUBA or COBA.")
     sys.exit(1)
 benchmark = sys.argv[1]
 
@@ -24,7 +28,7 @@ pylab.rcParams['figure.figsize'] = [60*CM,40*CM] # inches
 ny = 4
 dy = 1.0/ny; dx = 1.0/(len(simulators)*len(nodes));
 h = 0.8*dy; w = 0.8*dx
-y0 = (1-ny*h)/(ny+1);
+y0 = old_div((1-ny*h),(ny+1));
 x0 = 0.05
 
 def get_header(filename):
@@ -80,7 +84,7 @@ for simulator in simulators:
             vdata = allvdata.compress(cell_ids==i)
             vdata = pylab.where(vdata>=v_thresh-0.05,0.0,vdata) # add fake APs for plotting
             if len(tdata) > len(vdata):
-                print "Warning. Shortening tdata from %d to %d elements (%s)" % (len(tdata),len(vdata),simulator)
+                print("Warning. Shortening tdata from %d to %d elements (%s)" % (len(tdata),len(vdata),simulator))
                 tdata = tdata[0:len(vdata)]
             assert len(tdata)==len(vdata), "%d != %d (%s)" % (len(tdata),len(vdata),simulator)
             subplot.plot(tdata,vdata)

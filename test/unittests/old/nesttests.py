@@ -2,7 +2,12 @@
 Unit tests for pyNN.nest module
 $Id:nesttests.py 5 2007-04-16 15:01:24Z davison $
 """
+from __future__ import division
 
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import pyNN.nest as nest
 import pyNN.common as common
 import pyNN.random as random
@@ -51,7 +56,7 @@ class CreationTest(unittest.TestCase):
     def testCreateStandardCells(self):
         """create(): Creating multiple cells should return a list of GIDs"""
         ifcell = nest.create(nest.IF_curr_alpha,n=10)
-        assert ifcell == range(1,11), 'Failed to create 10 standard cells'
+        assert ifcell == list(range(1,11)), 'Failed to create 10 standard cells'
        
     def testCreateStandardCellsWithNegative_n(self):
         """create(): n must be positive definite"""
@@ -404,7 +409,7 @@ class PopulationRecordTest(unittest.TestCase): # to write later
         simtime = 1000
         nest.run(simtime)
         self.pop1.printSpikes("temp_nest.ras")
-        rate = self.pop1.meanSpikeCount()*1000/simtime
+        rate = old_div(self.pop1.meanSpikeCount()*1000,simtime)
         assert (20*0.8 < rate) and (rate < 20*1.2), rate
         
     def testPotentialRecording(self):

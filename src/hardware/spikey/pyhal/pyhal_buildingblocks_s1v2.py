@@ -1,3 +1,4 @@
+from __future__ import print_function
 # ***************************************************************************
 #
 # This file contains the most important structures needed to create and
@@ -10,6 +11,9 @@
 #
 # ***************************************************************************
 
+from builtins import str
+from builtins import range
+from builtins import object
 import pylogging as pylog
 myLogger = pylog.get("PyN.bbl")
 
@@ -23,7 +27,7 @@ import copy
 printIndentation = '    '
 
 
-class Network:
+class Network(object):
     '''This class is an abstract representation of a neural network to be emulated on the Spikey neuromorphic system.'''
 
     def __init__(self, maxSize=384, maxExternalInputs=512, maxExternalInputsPerNeuron=256, debug=False):
@@ -159,7 +163,7 @@ class Network:
         output.close()
 
 
-class Synapse():
+class Synapse(object):
     '''Simple Synapse class: weight is stored as float. Additional STDP and STP parameters can be provided.'''
 
     weight = 0.0
@@ -172,7 +176,7 @@ class Synapse():
         self.STP = STP
 
 
-class Neuron:
+class Neuron(object):
     '''This class is an abstract representation of a neuron to be emulated on the Spikey neuromorphic system.'''
 
     def __init__(self, paramDict):
@@ -210,8 +214,8 @@ class Neuron:
     def setParameters(self, paramDict):
         '''Sets the parameters of this neuron to those with matching keys in \'paramDict\'.'''
 
-        for p in paramDict.keys():
-            if self.parameters.has_key(p):
+        for p in list(paramDict.keys()):
+            if p in self.parameters:
                 self.parameters[p] = copy.deepcopy(paramDict[p])
             else:
                 raise Exception('Neuron has no parameter named ' + p + '!')
@@ -219,22 +223,22 @@ class Neuron:
     def printConnectivity(self):
         '''Prints the incoming connections of this neuron to the std output.'''
 
-        for i in self.incomingNeuronWeights.keys():
-            print printIndentation + "neuron", string.rjust(str(int(i)), 4), "----", string.rjust(str(self.incomingNeuronWeights[i]), 6), "----> neuron", string.rjust(str(int(self.index)), 4)
-        for i in self.externalWeights.keys():
-            print printIndentation + "input ", string.rjust(str(int(i)), 4), "----", string.rjust(str(self.externalWeights[i]), 6), "----> neuron", string.rjust(str(int(self.index)), 4)
+        for i in list(self.incomingNeuronWeights.keys()):
+            print(printIndentation + "neuron", string.rjust(str(int(i)), 4), "----", string.rjust(str(self.incomingNeuronWeights[i]), 6), "----> neuron", string.rjust(str(int(self.index)), 4))
+        for i in list(self.externalWeights.keys()):
+            print(printIndentation + "input ", string.rjust(str(int(i)), 4), "----", string.rjust(str(self.externalWeights[i]), 6), "----> neuron", string.rjust(str(int(self.index)), 4))
 
     def generateNetlistEntry(self, filehandler):
         '''Writes all outgoing connections of this neuron to a open file given by \'filehandler\'.'''
 
-        for i in self.outgoingNeuronWeights.keys():
+        for i in list(self.outgoingNeuronWeights.keys()):
             filehandler.write(str(int(self.index)) + "    " +
                               str(self.outgoingNeuronWeights[i]) + "    " + str(int(i)) + "\n")
 
     def setType(self, t):
         '''Sets the type of this neuron to \'t\'.'''
 
-        if t in neurotypes.neuronType.values():
+        if t in list(neurotypes.neuronType.values()):
             self.parameters['ntype'] = t
         else:
             raise Exception("Unknown neuron type!")

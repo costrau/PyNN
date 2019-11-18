@@ -4,6 +4,8 @@ Save and load populations.
 Jens Kremkow, INCM, CNRS
 November 2008
 """
+from __future__ import division
+from past.utils import old_div
 import sys
 simulator_name = sys.argv[-1]
 exec("from pyNN.%s import *" % simulator_name)
@@ -55,7 +57,7 @@ v2 = neurons2.get_v()
 neurons = numpy.unique(v1[:,0])
 for neuron in neurons:
     a = v1[v1[:,0]==neuron] == v2[v2[:,0]==neuron]
-    assert a.sum()/a.size == 1
+    assert old_div(a.sum(),a.size) == 1
 
 assert neurons_loaded.orientation == orientation
 

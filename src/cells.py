@@ -25,9 +25,10 @@ Spike sources (input neurons)
     SpikeSourceInhGamma
                
 """
+from __future__ import absolute_import
 
 import numpy
-from common import StandardCellType
+from .common import StandardCellType
 
 class IF_curr_alpha(StandardCellType):
     """

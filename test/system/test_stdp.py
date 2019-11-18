@@ -11,7 +11,10 @@ Calculates the difference in weight trajectories between the simulators
 
 (Consider rewriting to conform to the same structure as in test_synaptic_integration.py)
 """
+from __future__ import division
+from __future__ import print_function
 
+from past.utils import old_div
 import numpy
 from time import time
 from pyNN import nest, neuron, pcsim
@@ -59,7 +62,7 @@ networks.add_projection("trigger", "post", "AllToAllConnector", {'weights': 100.
 networks.run(0) # needed for PCSIM to set its weights properly
 networks.save_weights()
 
-networks.run(sim_time, int(sim_time/recording_interval), networks.save_weights)
+networks.run(sim_time, int(old_div(sim_time,recording_interval)), networks.save_weights)
 
 spike_data = networks.get_spikes()
 vm_data = networks.get_v()
@@ -84,7 +87,7 @@ def plot_figures():
     
     # plot Vm
     pylab.figure(1)
-    for sim_name, vm in vm_data.items():
+    for sim_name, vm in list(vm_data.items()):
         pylab.plot(vm['post'][0].time_axis(), vm['post'][0].signal, label="post (%s)" % sim_name)
     pylab.legend(loc='upper left')
     pylab.xlim(0, sim_time)
@@ -104,7 +107,7 @@ def plot_figures():
     # plot weights
     key = "pre→post"
     pylab.figure(3)
-    for sim_name, w in w_data.items():
+    for sim_name, w in list(w_data.items()):
         pylab.plot(w[key][:,0], w[key][:,1], label="%s (%s)" % (key, sim_name))
     t,w = S.calc_weights(at_input_spiketimes=True)
     pylab.plot(t, w, label="%s (calculated)" % key)
@@ -113,7 +116,7 @@ def plot_figures():
     pylab.title("Weights at input spike times")
     
     pylab.figure(4)
-    for sim_name, w in w_data1.items():
+    for sim_name, w in list(w_data1.items()):
         pylab.plot(w[key][:,0], w[key][:,1], label="%s (%s)" % (key, sim_name))
     t,w = S.calc_weights(at_input_spiketimes=False)
     pylab.plot(t, w, label="%s (calculated)" % key)
@@ -124,17 +127,17 @@ def plot_figures():
 if PLOT_FIGURES:
     plot_figures()
 
-for sim_name, w in w_data.items():
-    print sim_name, w[key][:,1]
+for sim_name, w in list(w_data.items()):
+    print(sim_name, w[key][:,1])
 
 def diff(data):
-    arr = [x[key][:,1] for x in data.values()]
+    arr = [x[key][:,1] for x in list(data.values())]
     a = arr[0]
     sum = 0
     for b in arr[1:]:
         assert len(a) == len(b)
-        sum += (numpy.sum(abs(a - b)) / ((a.mean()+b.mean())/2))
-    return sum/len(a)
+        sum += (old_div(numpy.sum(abs(a - b)), (old_div((a.mean()+b.mean()),2))))
+    return old_div(sum,len(a))
 
-print "seed was", seed
-print "difference", diff(w_data)
+print("seed was", seed)
+print("difference", diff(w_data))

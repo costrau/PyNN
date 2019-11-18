@@ -1,3 +1,4 @@
+from past.builtins import basestring
 from pyNN import utility
 import unittest
 import os

@@ -3,6 +3,8 @@ Unit tests for pyNN/nest1.py.
 $Id:nesttests.py 5 2007-04-16 15:01:24Z davison $
 """
 
+from builtins import zip
+from builtins import range
 import pyNN.nest1 as nest
 import pyNN.common as common
 import pyNN.random as random
@@ -28,7 +30,7 @@ class CreationTest(unittest.TestCase):
     def testCreateStandardCells(self):
         """create(): Creating multiple cells should return a list of GIDs"""
         ifcell = nest.create(nest.IF_curr_alpha,n=10)
-        assert ifcell == range(1,11), 'Failed to create 10 standard cells'
+        assert ifcell == list(range(1,11)), 'Failed to create 10 standard cells'
        
     def testCreateStandardCellsWithNegative_n(self):
         """create(): n must be positive definite"""

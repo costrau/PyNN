@@ -4,11 +4,14 @@ Standard cells for the neuron module.
 
 $Id$
 """
+from __future__ import division
 
+from past.utils import old_div
 from pyNN import common, cells
 from neuron import h, nrn, hclass
 from math import pi
 import logging
+from functools import reduce
 
 logger = logging.getLogger("PyNN")
 
@@ -45,7 +48,7 @@ class SingleCompartmentNeuron(nrn.Section):
         nrn.Section.__init__(self)
         self.seg = self(0.5)
         self.L = 100
-        self.seg.diam = 1000/pi # gives area = 1e-3 cm2
+        self.seg.diam = old_div(1000,pi) # gives area = 1e-3 cm2
                 
         self.syn_type = syn_type
         self.syn_shape = syn_shape
@@ -208,10 +211,10 @@ class LeakySingleCompartmentNeuron(SingleCompartmentNeuron):
         
     def __set_tau_m(self, value):
         #print "setting tau_m to", value, "cm =", self.seg.cm
-        self.seg.pas.g = 1e-3*self.seg.cm/value # cm(nF)/tau_m(ms) = G(uS) = 1e-6G(S). Divide by area (1e-3) to get factor of 1e-3
+        self.seg.pas.g = old_div(1e-3*self.seg.cm,value) # cm(nF)/tau_m(ms) = G(uS) = 1e-6G(S). Divide by area (1e-3) to get factor of 1e-3
     def __get_tau_m(self):
         #print "tau_m = ", 1e-3*self.seg.cm/self.seg.pas.g, "cm = ", self.seg.cm
-        return 1e-3*self.seg.cm/self.seg.pas.g
+        return old_div(1e-3*self.seg.cm,self.seg.pas.g)
 
     def __get_cm(self):
         #print "cm = ", self.seg.cm
@@ -304,10 +307,10 @@ class BretteGerstnerIF(LeakySingleCompartmentNeuron):
     v_spike = property(fget=__get_v_spike, fset=__set_v_spike)
     
     def __set_tau_m(self, value):
-        self.seg.pas.g = 1e-3*self.seg.cm/value # cm(nF)/tau_m(ms) = G(uS) = 1e-6G(S). Divide by area (1e-3) to get factor of 1e-3
+        self.seg.pas.g = old_div(1e-3*self.seg.cm,value) # cm(nF)/tau_m(ms) = G(uS) = 1e-6G(S). Divide by area (1e-3) to get factor of 1e-3
         self.adexp.GL = self.seg.pas.g * self.area() * 1e-2 # S/cm2 to uS
     def __get_tau_m(self):
-        return 1e-3*self.seg.cm/self.seg.pas.g
+        return old_div(1e-3*self.seg.cm,self.seg.pas.g)
     
     def __set_v_rest(self, value):
         self.seg.pas.e = value

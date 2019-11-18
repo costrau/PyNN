@@ -1,3 +1,4 @@
+from __future__ import print_function
 import pyNN.hardware.spikey as pynn
 import numpy as np
 import time
@@ -31,7 +32,7 @@ def test_runs():
         # print 'run', i, 'after', round((time.time() - timeStart) / 3600.0,
         # 4), 'hours runtime:', noSpikes, 'spikes from', uniqueNeurons, 'unique
         # neurons with av. rate', rate
-        print 'run', i, 'after', round((time.time() - timeStart) / 3600.0, 4), 'hours runtime'
+        print('run', i, 'after', round((time.time() - timeStart) / 3600.0, 4), 'hours runtime')
 
         pynn.end()
 

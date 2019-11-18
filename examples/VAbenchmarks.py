@@ -14,7 +14,10 @@ August 2006
 
 $Id:VAbenchmarks.py 5 2007-04-16 15:01:24Z davison $
 """
+from __future__ import division
+from __future__ import print_function
 
+from past.utils import old_div
 import os
 import socket
 from math import *
@@ -77,9 +80,9 @@ Erev_inh = -80.   # (mV)
 
 area  = area*1e-8                     # convert to cm²
 cm    = cm*area*1000                  # convert to nF
-Rm    = 1e-6/(g_leak*area)            # membrane resistance in MΩ
+Rm    = old_div(1e-6,(g_leak*area))            # membrane resistance in MΩ
 assert tau_m == cm*Rm                 # just to check
-n_exc = int(round((n*r_ei/(1+r_ei)))) # number of excitatory cells   
+n_exc = int(round((old_div(n*r_ei,(1+r_ei))))) # number of excitatory cells   
 n_inh = n - n_exc                     # number of inhibitory cells
 if benchmark == "COBA":
     celltype = IF_cond_exp
@@ -101,9 +104,9 @@ node_id = setup(timestep=dt, min_delay=delay, max_delay=delay, **extra)
 np = num_processes()
 
 host_name = socket.gethostname()
-print "Host #%d is on %s" % (node_id+1, host_name)
+print("Host #%d is on %s" % (node_id+1, host_name))
 
-print "%s Initialising the simulator with %d thread(s)..." % (node_id, extra['threads'])
+print("%s Initialising the simulator with %d thread(s)..." % (node_id, extra['threads']))
     
 cell_params = {
     'tau_m'      : tau_m,    'tau_syn_E'  : tau_exc,  'tau_syn_I'  : tau_inh,
@@ -116,7 +119,7 @@ if (benchmark == "COBA"):
     
 timer.start()
 
-print "%s Creating cell populations..." % node_id
+print("%s Creating cell populations..." % node_id)
 exc_cells = Population((n_exc,), celltype, cell_params, "Excitatory_Cells")
 inh_cells = Population((n_inh,), celltype, cell_params, "Inhibitory_Cells")
 if benchmark == "COBA":
@@ -124,13 +127,13 @@ if benchmark == "COBA":
     rconn = 0.01
     ext_conn = FixedProbabilityConnector(rconn, weights=0.1)
 
-print "%s Initialising membrane potential to random values..." % node_id
+print("%s Initialising membrane potential to random values..." % node_id)
 rng = NumpyRNG(seed=rngseed, parallel_safe=parallel_safe, rank=node_id, num_processes=np)
 uniformDistr = RandomDistribution('uniform', [v_reset,v_thresh], rng=rng)
 exc_cells.randomInit(uniformDistr)
 inh_cells.randomInit(uniformDistr)
 
-print "%s Connecting populations..." % node_id
+print("%s Connecting populations..." % node_id)
 exc_conn = FixedProbabilityConnector(pconn, weights=w_exc, delays=delay)
 inh_conn = FixedProbabilityConnector(pconn, weights=w_inh, delays=delay)
 
@@ -144,7 +147,7 @@ if (benchmark == "COBA"):
     connections['ext2i'] = Projection(ext_stim, inh_cells, ext_conn, target='excitatory')
 
 # === Setup recording ==========================================================
-print "%s Setting up recording..." % node_id
+print("%s Setting up recording..." % node_id)
 exc_cells.record()
 inh_cells.record()
 vrecord_list = [exc_cells[0],exc_cells[1]]
@@ -154,12 +157,12 @@ buildCPUTime = timer.diff()
 
 # === Save connections to file =================================================
 
-for prj in connections.keys():
+for prj in list(connections.keys()):
     connections[prj].saveConnections('Results/VAbenchmark_%s_%s_%s_np%d.conn' % (benchmark, prj, simulator_name, np))
 saveCPUTime = timer.diff()
 
 # === Run simulation ===========================================================
-print "%d Running simulation..." % node_id
+print("%d Running simulation..." % node_id)
 
 run(tstop)
 
@@ -170,7 +173,7 @@ I_count = inh_cells.meanSpikeCount()
 
 # === Print results to file ====================================================
 
-print "%d Writing data to file..." % node_id
+print("%d Writing data to file..." % node_id)
 
 if not(os.path.isdir('Results')):
     os.mkdir('Results')
@@ -186,19 +189,19 @@ connections = "%d e→e  %d e→i  %d i→e  %d i→i" % (connections['e2e'].siz
                                                   connections['i2i'].size())
 
 if node_id == 0:
-    print "\n--- Vogels-Abbott Network Simulation ---"
-    print "Nodes                  : %d" % np
-    print "Simulation type        : %s" % benchmark
-    print "Number of Neurons      : %d" % n
-    print "Number of Synapses     : %s" % connections
-    print "Excitatory conductance : %g nS" % Gexc
-    print "Inhibitory conductance : %g nS" % Ginh
-    print "Excitatory rate        : %g Hz" % (E_count*1000.0/tstop,)
-    print "Inhibitory rate        : %g Hz" % (I_count*1000.0/tstop,)
-    print "Build time             : %g s" % buildCPUTime
-    print "Save connections time  : %g s" % saveCPUTime
-    print "Simulation time        : %g s" % simCPUTime
-    print "Writing time           : %g s" % writeCPUTime
+    print("\n--- Vogels-Abbott Network Simulation ---")
+    print("Nodes                  : %d" % np)
+    print("Simulation type        : %s" % benchmark)
+    print("Number of Neurons      : %d" % n)
+    print("Number of Synapses     : %s" % connections)
+    print("Excitatory conductance : %g nS" % Gexc)
+    print("Inhibitory conductance : %g nS" % Ginh)
+    print("Excitatory rate        : %g Hz" % (E_count*1000.0/tstop,))
+    print("Inhibitory rate        : %g Hz" % (I_count*1000.0/tstop,))
+    print("Build time             : %g s" % buildCPUTime)
+    print("Save connections time  : %g s" % saveCPUTime)
+    print("Simulation time        : %g s" % simCPUTime)
+    print("Writing time           : %g s" % writeCPUTime)
 
 
 # === Finished with simulator ==================================================

@@ -25,13 +25,21 @@ modules.
     
 $Id$
 """
+from __future__ import division
 
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import object
+from past.utils import old_div
 import logging
 import brian
 import numpy
-from itertools import izip
+
 import scipy.sparse
 from pyNN import common, cells
+from functools import reduce
 
 mV = brian.mV
 ms = brian.ms
@@ -61,14 +69,14 @@ def _new_property(obj_hierarchy, attr_name, units):
         setattr(obj, attr_name, value*units)
     def get(self):
         obj = reduce(getattr, [self] + obj_hierarchy.split('.'))
-        return getattr(obj, attr_name)/units
+        return old_div(getattr(obj, attr_name),units)
     return property(fset=set, fget=get)
 
 def nesteddictwalk(d):
     """
     Walk a nested dict structure, returning all values in all dicts.
     """
-    for value1 in d.values():
+    for value1 in list(d.values()):
         if isinstance(value1, dict):
             for value2 in nesteddictwalk(value1):  # recurse into subdict
                 yield value2
@@ -87,7 +95,7 @@ class ThresholdNeuronGroup(brian.NeuronGroup):
                                    max_delay=state.max_delay*ms,
                                    )
         self.v_init = -60.0*mV
-        self.parameter_names = equations._namespace.keys() + ['v_thresh', 'v_reset', 'tau_refrac', 'v_init']
+        self.parameter_names = list(equations._namespace.keys()) + ['v_thresh', 'v_reset', 'tau_refrac', 'v_init']
         for var in ('v', 'ge', 'gi', 'ie', 'ii'): # can probably get this list from brian
             if var in self.parameter_names:
                 self.parameter_names.remove(var)
@@ -144,7 +152,7 @@ class MultipleSpikeGeneratorGroupWithDelays(brian.MultipleSpikeGeneratorGroup):
     def _set_spiketimes(self, spiketimes):
         assert common.is_listlike(spiketimes)
         if len(spiketimes) == 0 or common.is_number(spiketimes[0]):
-            spiketimes = [spiketimes for i in xrange(len(self))]
+            spiketimes = [spiketimes for i in range(len(self))]
         assert len(spiketimes) == len(self), "spiketimes (length %d) must contain as many iterables as there are cells in the group (%d)." % (len(spiketimes), len(self))
         self._threshold.set_spike_times(spiketimes)
     spiketimes = property(fget=_get_spiketimes, fset=_set_spiketimes)
@@ -167,7 +175,7 @@ class _State(object):
     def _get_dt(self):
         if self.simclock is None:
             raise Exception("Simulation timestep not yet set. Need to call setup()")
-        return self.simclock.dt/ms
+        return old_div(self.simclock.dt,ms)
     def _set_dt(self, timestep):
         if self.simclock is None or timestep != self._get_dt():
             self.simclock = brian.Clock(dt=timestep*ms)
@@ -175,7 +183,7 @@ class _State(object):
 
     @property
     def t(self):
-        return self.simclock.t/ms
+        return old_div(self.simclock.t,ms)
 
 def reset():
     """Reset the state of the current network to time t = 0."""
@@ -218,13 +226,13 @@ class ID(int, common.IDMixin):
                 # parameter may vary from cell to cell
                 try:
                     params[name] = float(getattr(self.parent_group[int(self)], name)[0])
-                except TypeError, errmsg:
+                except TypeError as errmsg:
                     raise TypeError("%s. celltype=%s, parameter name=%s" % (errmsg, self.cellclass, name))
         return params
     
     def set_native_parameters(self, parameters):
         """Set parameters of the Brian cell model from a dictionary."""
-        for name, value in parameters.items():
+        for name, value in list(parameters.items()):
             if name in ['v_thresh', 'v_reset', 'tau_refrac', 'start', 'rate', 'duration']:
                 setattr(self.parent_group, name, value)
                 logger.warning("This parameter cannot be set for individual cells within a Population. Changing the value for all cells in the Population.")
@@ -265,7 +273,7 @@ def create_cells(cellclass, cellparams=None, n=1, parent=None):
     if isinstance(cellclass, basestring):  # celltype is not a standard cell
         try:
             eqs = brian.Equations(cellclass)
-        except Exception, errmsg:
+        except Exception as errmsg:
             raise common.InvalidModelError(errmsg)
         v_thresh   = cellparams['v_thresh']
         v_reset    = cellparams['v_reset']
@@ -287,17 +295,17 @@ def create_cells(cellclass, cellparams=None, n=1, parent=None):
             brian_cells = PoissonGroupWithDelays(n, rates=fct)
         elif isinstance(celltype, cells.SpikeSourceArray):
             spike_times = cell_parameters['spiketimes']
-            brian_cells = MultipleSpikeGeneratorGroupWithDelays([spike_times for i in xrange(n)])
+            brian_cells = MultipleSpikeGeneratorGroupWithDelays([spike_times for i in range(n)])
         else:
             brian_cells = ThresholdNeuronGroup(n, cellclass.eqs)
     else:
         raise Exception("Invalid cell type: %s" % type(cellclass))    
 
     if cell_parameters:
-        for key, value in cell_parameters.items():
+        for key, value in list(cell_parameters.items()):
             setattr(brian_cells, key, value)
     # should we globally track the IDs used, so as to ensure each cell gets a unique integer? (need only track the max ID)
-    cell_list = numpy.array([ID(cell) for cell in xrange(len(brian_cells))], ID)
+    cell_list = numpy.array([ID(cell) for cell in range(len(brian_cells))], ID)
     for cell in cell_list:
         cell.parent_group = brian_cells
    
@@ -359,14 +367,14 @@ class Connection(object):
     def _get_weight(self):
         """Synaptic weight in nA or µS."""
         ###print "in Connection._get_weight(), weight_units = %s" % self.bc.weight_units
-        return float(self.bc[self.addr]/self.bc.weight_units)
+        return float(old_div(self.bc[self.addr],self.bc.weight_units))
 
     def _set_delay(self, d):
         self.bc.delay[self.addr] = d*ms
 
     def _get_delay(self):
         """Synaptic delay in ms."""
-        return float(self.bc.delay[self.addr]/ms)
+        return float(old_div(self.bc.delay[self.addr],ms))
 
     weight = property(_get_weight, _set_weight)
     delay = property(_get_delay, _set_delay)
@@ -490,7 +498,7 @@ class ConnectionManager(object):
         synapse_obj  = targets[0].cellclass.synapses[synapse_type]
         try:
             source_group = source.parent_group
-        except AttributeError, errmsg:
+        except AttributeError as errmsg:
             raise common.ConnectionError("%s. Maybe trying to connect from non-existing cell (ID=%s)." % (errmsg, source))
         target_group = targets[0].parent_group # we assume here all the targets belong to the same NeuronGroup
         bc = self._get_brian_connection(source_group,
@@ -595,7 +603,7 @@ class ConnectionManager(object):
         elif common.is_listlike(value):
             assert len(value) == M.getnnz()
             address_gen = ((i,j) for i,row in enumerate(bc.W.rows) for j in row)
-            for ((i,j),val) in izip(address_gen, value):
+            for ((i,j),val) in zip(address_gen, value):
                 M[i,j] = val*units
         else:
             raise Exception("Values must be scalars or lists/arrays")

@@ -14,8 +14,9 @@ Classes for defining STDP rules:
     SpikePairRule
     
 """
+from __future__ import absolute_import
 
-from common import ShortTermPlasticityMechanism, STDPWeightDependence, STDPTimingDependence
+from .common import ShortTermPlasticityMechanism, STDPWeightDependence, STDPTimingDependence
 
 class TsodyksMarkramMechanism(ShortTermPlasticityMechanism):
     """

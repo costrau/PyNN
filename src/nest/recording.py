@@ -1,3 +1,4 @@
+from builtins import range
 import tempfile
 import os
 import numpy
@@ -47,7 +48,7 @@ class Recorder(recording.Recorder):
             device_parameters.update(to_file=True, to_memory=False)
         try:
             nest.SetStatus(self._device, device_parameters)
-        except nest.hl_api.NESTError, e:
+        except nest.hl_api.NESTError as e:
             raise nest.hl_api.NESTError("%s. Parameter dictionary was: %s" % (e, device_parameters))
 
     def _record(self, new_ids):

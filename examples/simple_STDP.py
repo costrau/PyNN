@@ -6,7 +6,10 @@ January 2008
 
 $Id$
 """
+from __future__ import print_function
 
+from builtins import str
+from builtins import range
 import numpy
 from pyNN.utility import get_script_args
 sim_name = get_script_args(1)[0]   
@@ -49,7 +52,7 @@ try:
 except Exception:
     pass
 
-print w
+print(w)
 f = open("Results/simple_STDP_%s.w" % sim_name, 'w')
 f.write("\n".join([str(ww) for ww in w]))
 f.close()

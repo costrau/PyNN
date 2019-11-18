@@ -2,7 +2,12 @@
 Unit tests for pyNN/random.py. 
 $Id$
 """
+from __future__ import division
 
+from builtins import next
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import pyNN.random as random
 import numpy
 import unittest
@@ -23,7 +28,7 @@ class SimpleTests(unittest.TestCase):
     def testNextOne(self):
         """Calling next() with no arguments or with n=1 should return a float."""
         for rng in self.rnglist:
-            assert isinstance(rng.next(),float)
+            assert isinstance(next(rng),float)
             assert isinstance(rng.next(1),float)
             assert isinstance(rng.next(n=1),float)
     
@@ -36,7 +41,7 @@ class SimpleTests(unittest.TestCase):
     def testNonPositiveN(self):
         """Calling next(m) where m < 0 should raise a ValueError."""
         for rng in self.rnglist:
-            self.assertRaises(ValueError,rng.next,-1)
+            self.assertRaises(ValueError,rng.__next__,-1)
 
     def testNZero(self):
         """Calling next(0) should return an empty array."""
@@ -54,8 +59,8 @@ class ParallelTests(unittest.TestCase):
             rng1 = rng_type(seed=1000, rank=1, num_processes=2, parallel_safe=False)
             draw0 = rng0.next(5)
             draw1 = rng1.next(5)
-            self.assertEqual(len(draw0), 5/2+1)
-            self.assertEqual(len(draw1), 5/2+1)
+            self.assertEqual(len(draw0), old_div(5,2)+1)
+            self.assertEqual(len(draw1), old_div(5,2)+1)
             self.assertNotEqual(draw0.tolist(), draw1.tolist())
 
     def test_parallel_safe(self):
@@ -72,7 +77,7 @@ class ParallelTests(unittest.TestCase):
         # only works for NumpyRNG at the moment. pygsl has a permutation module, but I can't find documentation for it.
         rng0 = random.NumpyRNG(seed=1000, rank=0, num_processes=2, parallel_safe=True)
         rng1 = random.NumpyRNG(seed=1000, rank=1, num_processes=2, parallel_safe=True)
-        A = range(10)
+        A = list(range(10))
         perm0 = rng0.permutation(A)
         perm1 = rng1.permutation(A)
         assert_arrays_almost_equal(perm0, perm1, 1e-99)
@@ -139,11 +144,11 @@ class RandomDistributionTests(unittest.TestCase):
         assert vals.min() >= 0
         assert vals.max() < 1.0
         assert abs(vals.mean() - 0.5) < 0.05
-        val = rd.next()
+        val = next(rd)
         rd = random.RandomDistribution(distribution='uniform', parameters=[-1.0, 1.0],
                                        rng=self.rnglist[0], boundaries=[0.0, 1.0],
                                        constrain=None)
-        self.assertRaises(Exception, rd.next)
+        self.assertRaises(Exception, rd.__next__)
 
 # ==============================================================================            
 if __name__ == "__main__":

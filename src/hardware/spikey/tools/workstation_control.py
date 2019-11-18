@@ -1,13 +1,20 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import str
+from builtins import range
 import pylogging as pylog
 myLogger = pylog.get("PyN.wks")
 
 import os
-import xmltodict
+try:
+    from . import xmltodict
+except:
+    import xmltodict
 import curses
 import time
 import numpy
 
-if os.environ.has_key('PYNN_HW_PATH'):
+if 'PYNN_HW_PATH' in os.environ:
     basePath = os.path.join(os.environ['PYNN_HW_PATH'], 'config')
 else:
     raise EnvironmentError(
@@ -56,19 +63,19 @@ def checkUserIsOwner(stationDict):
     if user == owner:
         return True
 
-    print '\n'
-    print '* * * * * * ! ! ! ATTENTION ! ! ! * * * * * *'
-    print '*                                           *'
-    print '* You are logged in as >>> ' + user + ' <<<.'
-    print '* Current station belongs to >>> ' + owner + ' <<<.'
-    print '*'
-    print '* Press <space> to continue anyway or'
-    print '*         <q>   to abort.'
-    print '*'
-    print '* Continuing automatically after 5 seconds.'
-    print '*'
-    print '* * * * * * * * * *'
-    print '\n'
+    print('\n')
+    print('* * * * * * ! ! ! ATTENTION ! ! ! * * * * * *')
+    print('*                                           *')
+    print('* You are logged in as >>> ' + user + ' <<<.')
+    print('* Current station belongs to >>> ' + owner + ' <<<.')
+    print('*')
+    print('* Press <space> to continue anyway or')
+    print('*         <q>   to abort.')
+    print('*')
+    print('* Continuing automatically after 5 seconds.')
+    print('*')
+    print('* * * * * * * * * *')
+    print('\n')
 
     import time
     try:
@@ -78,19 +85,19 @@ def checkUserIsOwner(stationDict):
             if char is None:
                 pass
             elif char == 'q':
-                print 'Canceled by user!'
+                print('Canceled by user!')
                 return False
             elif char == ' ':
-                print "Continuing due to user's decision!"
+                print("Continuing due to user's decision!")
                 return True
             else:
                 pass
 
-        print "Continuing automatically after timeout!"
+        print("Continuing automatically after timeout!")
         return True
 
     except:
-        print "Canceled due to error!"
+        print("Canceled due to error!")
         return False
 
 
@@ -146,7 +153,7 @@ def getWorkstation(workStationName=None, isFirstSetup=True):
                 raise Exception('ERROR: File ' + basePath + '/workstations.xml is present, but the key ' +
                                 myStationString + ' defined in my_stage1_station can not be found.')
 
-        except Exception, inst:
+        except Exception as inst:
             raise Exception('ERROR: An error occured while trying to read work station data from file ' +
                             basePath + '/workstations.xml: ' + inst.__str__())
 
@@ -202,7 +209,7 @@ def getWorkstation(workStationName=None, isFirstSetup=True):
             myStationDict['voutMins'] = numpy.ones(50) * 0.2
             myStationDict['voutMaxs'] = numpy.ones(50) * 1.6
 
-    except Exception, inst:
+    except Exception as inst:
         raise Exception('ERROR: A problem occured while trying to read data from file ' +
                         os.environ['SPIKEYHALPATH'] + '/spikeycalib.xml: ' + inst.__str__())
 

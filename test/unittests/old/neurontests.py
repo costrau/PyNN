@@ -2,7 +2,12 @@
 Unit tests for pyNN/neuron.py.
 $Id$
 """
+from __future__ import division
 
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import pyNN.neuron as neuron
 import pyNN.common as common
 import pyNN.random as random
@@ -38,7 +43,7 @@ class CreationTest(unittest.TestCase):
         """create(): Creating multiple cells should return a list of integers"""
         logging.info('=== CreationTest.testCreateStandardCells ===')
         ifcells = neuron.create(neuron.IF_curr_alpha, n=10)
-        assert ifcells == range(0,10), 'Failed to create 10 standard cells'
+        assert ifcells == list(range(0,10)), 'Failed to create 10 standard cells'
        
     def testCreateStandardCellsWithNegative_n(self):
         """create(): n must be positive definite"""
@@ -249,7 +254,7 @@ class PopulationInitTest(unittest.TestCase):
         self.assertEqual(net.size, 9)
         n_cells_local = len([id for id in net])
         # round-robin distribution
-        min = 9/neuron.num_processes()
+        min = old_div(9,neuron.num_processes())
         max = min+1
         assert min <= n_cells_local <= max, "%d not between %d and %d" % (n_cells_local, min, max)
     
@@ -276,7 +281,7 @@ class PopulationInitTest(unittest.TestCase):
         net = neuron.Population((3,3), neuron.StandardIF, {'syn_type':'current', 'syn_shape':'exp'})
         self.assertEqual(net.size, 9)
         n_cells_local = len([id for id in net])
-        min = 9/neuron.num_processes()
+        min = old_div(9,neuron.num_processes())
         max = min+1
         assert min <= n_cells_local <= max, "%d not between %d and %d" % (n_cells_local, min, max)
 
@@ -507,10 +512,10 @@ class PopulationRecordTest(unittest.TestCase): # to write later
         simtime = 1000.0
         neuron.run(simtime)
         #self.pop1.printSpikes("temp_neuron.ras", gather=True)
-        rate = self.pop1.meanSpikeCount()*1000/simtime
+        rate = old_div(self.pop1.meanSpikeCount()*1000,simtime)
         if neuron.rank() == 0: # only on master node
             assert (20*0.8 < rate) and (rate < 20*1.2), "rate is %s" % rate
-        rate = self.pop3.meanSpikeCount()*1000/simtime
+        rate = old_div(self.pop3.meanSpikeCount()*1000,simtime)
         self.assertEqual(rate, 0.0)
 
     def testPotentialRecording(self):

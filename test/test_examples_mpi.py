@@ -2,6 +2,7 @@
 Test that running a distributed simulation using MPI gives the same results
 as a local, serial simulation.
 """
+from __future__ import print_function
 
 import os
 from subprocess import Popen, PIPE, STDOUT
@@ -14,7 +15,7 @@ import time
 usage = "python test_mpi.py <num_processes> <script> [<arg1>, [<arg2>, ..]]"
 
 if len(sys.argv) < 3:
-    print usage
+    print(usage)
     sys.exit(1)
 
 n = int(sys.argv[1]) #2
@@ -34,8 +35,8 @@ cmd1 = "python %s %s" % (os.path.abspath(script), script_args),
 cmd2 = "mpiexec -n %d -wdir %s python %s %s" % (n, tmpdirs['distrib'],
                                                 os.path.abspath(script),
                                                 script_args)
-print cmd1
-print cmd2
+print(cmd1)
+print(cmd2)
 job1 = Popen(cmd1, stdin=None, stdout=None, stderr=STDOUT, shell=True, cwd=tmpdirs['serial'])
 job2 = Popen(cmd2, stdin=None, stdout=None, stderr=STDOUT, shell=True, cwd=tmpdirs['distrib'])
 job2.wait()
@@ -44,7 +45,7 @@ job1.wait()
 
 
 # === Compare output files =====================================================
-print "="*80
+print("="*80)
 
 def find_files(path):
     data_files = []
@@ -63,8 +64,8 @@ def clean_up():
     Popen("mpiexec -n %d rm -rf %s" % (n, tmpdirs['distrib']), shell=True).wait()
 
 def fail(msg):
-    print "\nFAIL:", msg
-    print "\nCommand to remove temporary files: rm -rf %s %s" % tuple(tmpdirs.values())
+    print("\nFAIL:", msg)
+    print("\nCommand to remove temporary files: rm -rf %s %s" % tuple(tmpdirs.values()))
     sys.exit(1)
 
 
@@ -84,8 +85,8 @@ for mode in 'serial', 'distrib':
         filename_maps[mode][np_pattern.sub("", filename)] = os.path.join(tmpdirs[mode], filename)
 
 # Check that the filenames match
-serial_names = filename_maps['serial'].keys()
-distrib_names = filename_maps['distrib'].keys()
+serial_names = list(filename_maps['serial'].keys())
+distrib_names = list(filename_maps['distrib'].keys())
 serial_names.sort()
 distrib_names.sort()
 names_match = serial_names == distrib_names
@@ -100,9 +101,9 @@ for name in filename_maps['serial']:
     for mode in 'serial', 'distrib':
         file_sizes[mode][name] = os.stat(filename_maps[mode][name]).st_size
 
-print "Output files" + " "*44 + "serial     distrib"
+print("Output files" + " "*44 + "serial     distrib")
 for name in filename_maps['serial']:
-    print "  %-50s %9s   %9s" % (name, file_sizes['serial'][name], file_sizes['distrib'][name])
+    print("  %-50s %9s   %9s" % (name, file_sizes['serial'][name], file_sizes['distrib'][name]))
 
 sizes_match = file_sizes['serial'] == file_sizes['distrib']
 if not sizes_match:
@@ -111,7 +112,7 @@ if not sizes_match:
 # Sort the files
 jobs = []
 for mode in 'serial', 'distrib':
-    for filename in filename_maps[mode].values():
+    for filename in list(filename_maps[mode].values()):
         cmd = "sort %s > %s,sorted" % (filename, filename)
         jobs.append(Popen(cmd, shell=True))
 for job in jobs:
@@ -124,9 +125,9 @@ for name in filename_maps['serial']:
     
 if not all(diffs.values()):
     fail("the following files are different:\n  " + \
-         "\n  ".join("%s -- %s" % (filename_maps['serial'][name], filename_maps['distrib'][name]) for name,same in diffs.items() if not same)
+         "\n  ".join("%s -- %s" % (filename_maps['serial'][name], filename_maps['distrib'][name]) for name,same in list(diffs.items()) if not same)
         )
 
 # If everything worked...
-print "PASS: the serial and distributed simulations give identical results"
+print("PASS: the serial and distributed simulations give identical results")
 clean_up()

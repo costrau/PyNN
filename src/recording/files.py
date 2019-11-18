@@ -15,8 +15,11 @@ $Id$
 """
 
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 import numpy
-import cPickle as pickle
+import pickle as pickle
 try:
     import tables
     have_hdf5 = True
@@ -89,7 +92,7 @@ class StandardTextFile(BaseFile):
         # can we write to the file more than once? In this case, should use seek,tell
         # to always put the header information at the top?
         # write header
-        header_lines = ["# %s = %s" % item for item in metadata.items()]
+        header_lines = ["# %s = %s" % item for item in list(metadata.items())]
         self.fileobj.write("\n".join(header_lines) + '\n')
         # write data
         savetxt = getattr(numpy, 'savetxt', _savetxt)
@@ -127,7 +130,7 @@ class NumpyBinaryFile(BaseFile):
     
     def write(self, data, metadata):
         __doc__ = BaseFile.write.__doc__
-        metadata_array = numpy.array(metadata.items())
+        metadata_array = numpy.array(list(metadata.items()))
         numpy.savez(self.fileobj, data=data, metadata=metadata_array)
         
     def read(self):
@@ -166,9 +169,9 @@ if have_hdf5:
             if len(data) > 0:
                 try:
                     node = self.fileobj.createArray(self.fileobj.root, "data", data)
-                except tables.HDF5ExtError, e:
+                except tables.HDF5ExtError as e:
                     raise tables.HDF5ExtError("%s. data.shape=%s, metadata=%s" % (e, data.shape, metadata))
-                for name, value in metadata.items():
+                for name, value in list(metadata.items()):
                     setattr(node.attrs, name, value)
                 self.fileobj.close()
     

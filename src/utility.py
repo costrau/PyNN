@@ -14,9 +14,12 @@ Functions:
 
 $Id$
 """
+from __future__ import print_function
 
 # If there is a settings.py file on the path, defaults will be
 # taken from there.
+from builtins import str
+from builtins import object
 try:
     from settings import SMTPHOST, EMAIL
 except ImportError:
@@ -27,8 +30,8 @@ import logging
 import time
 import os
 
-red     = 0010; green  = 0020; yellow = 0030; blue = 0040;
-magenta = 0050; cyan   = 0060; bright = 0100
+red     = 0o010; green  = 0o020; yellow = 0o030; blue = 0o040;
+magenta = 0o050; cyan   = 0o060; bright = 0o100
 try:
     import ll.ansistyle
     def colour(col, text):
@@ -41,7 +44,7 @@ except ImportError:
 def notify(msg="Simulation finished.", subject="Simulation finished.", smtphost=SMTPHOST, address=EMAIL):
         """Send an e-mail stating that the simulation has finished."""
         if not (smtphost and address):
-            print "SMTP host and/or e-mail address not specified.\nUnable to send notification message."
+            print("SMTP host and/or e-mail address not specified.\nUnable to send notification message.")
         else:
             import smtplib, datetime
             msg = ("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n") % (address,address,subject) + msg
@@ -123,7 +126,7 @@ def load_population(filename):
         index = population.locate(neuron_in_new_population)
         population[index].set_parameters(**{'spike_times':spike_times})
     # set the variables
-    for variable, value in s['variables'].items():
+    for variable, value in list(s['variables'].items()):
         exec('population.%s = value'%variable)
     s.close()
     return population

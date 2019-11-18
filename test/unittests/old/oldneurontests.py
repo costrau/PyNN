@@ -2,7 +2,13 @@
 Unit tests for pyNN/neuron.py.
 $Id$
 """
+from __future__ import division
+from __future__ import print_function
 
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import pyNN.oldneuron as neuron
 import pyNN.common as common
 import pyNN.random as random
@@ -30,7 +36,7 @@ class CreationTest(unittest.TestCase):
         """create(): Creating multiple cells should return a list of integers"""
         neuron.hoc_comment('=== CreationTest.testCreateStandardCells ===')
         ifcells = neuron.create(neuron.IF_curr_alpha, n=10)
-        assert ifcells == range(0,10), 'Failed to create 10 standard cells'
+        assert ifcells == list(range(0,10)), 'Failed to create 10 standard cells'
        
     def testCreateStandardCellsWithNegative_n(self):
         """create(): n must be positive definite"""
@@ -109,19 +115,19 @@ class ConnectionTest(unittest.TestCase):
         each element being the id number of a netcon."""
         connlist = neuron.connect(self.precells, self.postcells[0])
         # connections are only created on the node containing the post-syn
-        assert connlist == range(0, len(self.precells)) or connlist == [], connlist
+        assert connlist == list(range(0, len(self.precells))) or connlist == [], connlist
         
     def testConnectOneToMany(self):
         """connect(): Connecting one source to n targets should return a list of target ports."""
         connlist = neuron.connect(self.precells[0], self.postcells)
         cells_on_this_node = len([i for i in self.postcells if i in neuron.gidlist])
-        assert connlist == range(cells_on_this_node)
+        assert connlist == list(range(cells_on_this_node))
         
     def testConnectManyToMany(self):
         """connect(): Connecting m sources to n targets should return a list of length m x n"""
         connlist = neuron.connect(self.precells, self.postcells)
         cells_on_this_node = len([i for i in self.postcells if i in neuron.gidlist])
-        expected_connlist = range(cells_on_this_node*len(self.precells))
+        expected_connlist = list(range(cells_on_this_node*len(self.precells)))
         self.assert_(connlist == expected_connlist, "%s != %s" % (connlist, expected_connlist))
         
     def testConnectWithProbability(self):
@@ -204,7 +210,7 @@ class PopulationInitTest(unittest.TestCase):
         n_cells = getattr(h, net.label).count()
         n_cells_lower = int(getattr(h, net.label).count())
         # round-robin distribution
-        assert 9/neuron.nhost <= n_cells_lower <= 9/neuron.nhost+1, "%d not between %d and %d" % (n_cells_lower, 9/neuron.nhost, 9/neuron.nhost+1)
+        assert old_div(9,neuron.nhost) <= n_cells_lower <= old_div(9,neuron.nhost)+1, "%d not between %d and %d" % (n_cells_lower, old_div(9,neuron.nhost), old_div(9,neuron.nhost)+1)
     
     def testInitWithParams(self):
         """Population.__init__(): Parameters set on creation should be the same as
@@ -231,7 +237,7 @@ class PopulationInitTest(unittest.TestCase):
         n_cells = getattr(h, net.label).count()
         n_cells_lower = int(getattr(h, net.label).count())
         # round-robin distribution
-        assert 9/neuron.nhost <= n_cells_lower <= 9/neuron.nhost+1, "%d not between %d and %d" % (n_cells_lower, 9/neuron.nhost, 9/neuron.nhost+1)
+        assert old_div(9,neuron.nhost) <= n_cells_lower <= old_div(9,neuron.nhost)+1, "%d not between %d and %d" % (n_cells_lower, old_div(9,neuron.nhost), old_div(9,neuron.nhost)+1)
     
 
 # ==============================================================================
@@ -419,7 +425,7 @@ class PopulationSetTest(unittest.TestCase):
         output_values_1 = numpy.zeros((3,3), numpy.float)
         output_values_2 = numpy.zeros((3,3), numpy.float)
         hoc_net = getattr(h, self.net.label)
-        print hoc_net.count()
+        print(hoc_net.count())
         for i in 0,1,2:
             for j in 0,1,2:
                 id = 3*i+j
@@ -477,7 +483,7 @@ class PopulationRecordTest(unittest.TestCase): # to write later
         neuron.running = False
 	neuron.run(simtime)
 	self.pop1.printSpikes("temp_neuron.ras", gather=True)
-        rate = self.pop1.meanSpikeCount()*1000/simtime
+        rate = old_div(self.pop1.meanSpikeCount()*1000,simtime)
         if neuron.myid == 0: # only on master node
             assert (20*0.8 < rate) and (rate < 20*1.2), "rate is %s" % rate
 
@@ -726,7 +732,7 @@ class ProjectionSetTest(unittest.TestCase):
         hoc_list = getattr(h, prj1.hoc_label)
         for connection_id in prj1.connections:
             mean_weight_before += hoc_list.object(prj1.connections.index(connection_id)).weight[0]
-        mean_weight_before = float(mean_weight_before/len(prj1.connections))  
+        mean_weight_before = float(old_div(mean_weight_before,len(prj1.connections)))  
         simtime = 100
         neuron.running = False
         run(simtime)
@@ -739,7 +745,7 @@ class ProjectionSetTest(unittest.TestCase):
             assert target_spikes > 0
         for connection_id in prj1.connections:
             mean_weight_after += hoc_list.object(prj1.connections.index(connection_id)).weight[0]
-        mean_weight_after = float(mean_weight_after/len(prj1.connections))
+        mean_weight_after = float(old_div(mean_weight_after,len(prj1.connections)))
         assert (mean_weight_before < mean_weight_after), "%g !< %g" % (mean_weight_before, mean_weight_after)
     
     def testSetDelaysWithSTDP(self):

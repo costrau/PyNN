@@ -9,7 +9,12 @@ methods.
 
 Andrew Davison, UNIC, CNRS, 2008
 """
+from __future__ import division
+from __future__ import print_function
 
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import numpy
 from NeuroTools.parameters import ParameterSet
 from NeuroTools import signals
@@ -55,10 +60,10 @@ class SimpleNetwork(object):
             fast_mech = None
         if parameters.plasticity.long_term:
             P = parameters.plasticity.long_term
-            print P.pretty()
-            print P.timing_dependence
-            print P.timing_dependence.model
-            print P.timing_dependence.params
+            print(P.pretty())
+            print(P.timing_dependence)
+            print(P.timing_dependence.model)
+            print(P.timing_dependence.params)
             slow_mech = sim.STDPMechanism(
                 timing_dependence=getattr(sim, P.timing_dependence.model)(**P.timing_dependence.params),
                 weight_dependence=getattr(sim, P.weight_dependence.model)(**P.weight_dependence.params),
@@ -113,14 +118,14 @@ class SimpleNetwork(object):
         spikes = {}
         for pop in chain(self._neuronal_populations, self._source_populations):
             spike_arr = pop.getSpikes()
-            spikes[pop.label] = signals.SpikeList(spike_arr, id_list=range(pop.size))
+            spikes[pop.label] = signals.SpikeList(spike_arr, id_list=list(range(pop.size)))
         return spikes
         
     def get_v(self):
         vm = {}
         for pop in self._neuronal_populations:
             vm_arr = pop.get_v()
-            vm[pop.label] = signals.VmList(vm_arr[:,(0,2)], id_list=range(pop.size),
+            vm[pop.label] = signals.VmList(vm_arr[:,(0,2)], id_list=list(range(pop.size)),
                                            dt=self.parameters.system.timestep,
                                            t_start=min(vm_arr[:,1]),
                                            t_stop=max(vm_arr[:,1])+self.parameters.system.timestep)
@@ -135,7 +140,7 @@ class SimpleNetwork(object):
             if at_input_spiketimes:
                 assert isinstance(prj._method.delays, float)
                 post_synaptic_potentials = presynaptic_spike_times + prj._method.delays
-                mask = numpy.ceil(post_synaptic_potentials/recording_interval).astype('int')
+                mask = numpy.ceil(old_div(post_synaptic_potentials,recording_interval)).astype('int')
                 w[prj.label] = w[prj.label][mask]
         return w
 
@@ -155,8 +160,8 @@ def test(sim):
     net = SimpleNetwork(sim, params)
     sim.run(100.0)
     id = net.get_v()['post'].id_list()[0]
-    print id
-    print net.get_v()['post'][id]
+    print(id)
+    print(net.get_v()['post'][id])
     
         
 # ==============================================================================

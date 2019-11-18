@@ -4,6 +4,12 @@
 
 # TODO: detect EPSPs with Fourier analysis, see Johann's Bachelor thesis
 
+from __future__ import division
+from __future__ import print_function
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import time
 import numpy as np
 import copy
@@ -11,7 +17,7 @@ import pyNN.hardware.spikey as pynn
 
 # initialize random number generator
 seed = int(time.time())
-print 'seed', seed
+print('seed', seed)
 np.random.seed(seed)
 
 runtime = 2000.0  # ms
@@ -21,8 +27,8 @@ stimRate = 100.0
 weight = 15.0  # in digital values
 
 noConnections = 10
-connectionList = zip(np.random.random_integers(
-    0, 255, noConnections), np.random.random_integers(0, 63, noConnections))
+connectionList = list(zip(np.random.random_integers(
+    0, 255, noConnections), np.random.random_integers(0, 63, noConnections)))
 
 filename = 'routing_data.txt'
 with open(filename, 'w') as myfile:
@@ -39,7 +45,7 @@ def route(connection):
     """
 
     synDriverIndex, neuronIndexBlock = connection
-    print 'testing route:', synDriverIndex, '->', neuronIndexBlock
+    print('testing route:', synDriverIndex, '->', neuronIndexBlock)
 
     neuronParam = copy.copy(pynn.IF_facets_hardware1.default_parameters)
     neuronParam['v_thresh'] = neuronParam['v_rest'] + 10.0
@@ -90,7 +96,7 @@ def route(connection):
     pynn.run(runtime)
 
     def getRate(spikes):
-        return len(spikes) / runtime * 1e3
+        return old_div(len(spikes), runtime) * 1e3
 
     rateList = []
     rateDummyList = []
@@ -106,8 +112,8 @@ def route(connection):
     for dummyNeurons in dummyNeuronsList:
         rateDummyList.append(getRate(dummyNeurons.getSpikes()))
 
-    print 'rate neurons:', rateList
-    print 'rate dummy neurons', rateDummyList
+    print('rate neurons:', rateList)
+    print('rate dummy neurons', rateDummyList)
 
     pynn.end()
 
@@ -126,11 +132,11 @@ def route(connection):
 
     for neuronIndexGlobal, rate in rateList:
         if rate < limitActive:
-            print didNotFire(neuronIndexGlobal, rate)
+            print(didNotFire(neuronIndexGlobal, rate))
 
     for rate in rateDummyList:
         if rate > limitSilence:
-            print didFire(rate)
+            print(didFire(rate))
 
     # save data for collecting statistics
     with open(filename, 'a') as myfile:

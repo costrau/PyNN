@@ -1,3 +1,4 @@
+from __future__ import print_function
 def testRegularMaxPacked():
     '''Maximum rate with packing:
 
@@ -22,9 +23,9 @@ def testRegularMaxPacked():
     neuron.record()
 
     pynn.run(duration)
-    print 'no out spikes:', len(neuron.getSpikes())
+    print('no out spikes:', len(neuron.getSpikes()))
     lost, sent = pynn.getInputSpikes()
-    print 'no in spikes (lost, sent)', lost, sent
+    print('no in spikes (lost, sent)', lost, sent)
     assert lost == 0, 'there should not be any spikes lost!'
 
     pynn.end()

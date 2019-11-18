@@ -10,15 +10,17 @@ default values of args).
 Andrew P. Davison, CNRS, UNIC, May 2006
 $Id$
 """
+from __future__ import print_function
 
+from builtins import str
 import re, string, types, getopt, sys, shutil, os, inspect, math
 #shutil.copy('dummy_hoc.py','hoc.py')
 from pyNN import common, nest, neuron, pcsim, brian
 #os.remove('hoc.py') #; os.remove('hoc.pyc')
 
 
-red     = 0010; green  = 0020; yellow = 0030; blue = 0040;
-magenta = 0050; cyan   = 0060; bright = 0100
+red     = 0o010; green  = 0o020; yellow = 0o030; blue = 0o040;
+magenta = 0o050; cyan   = 0o060; bright = 0o100
 try:
     import ll.ansistyle
     coloured = True
@@ -67,10 +69,10 @@ else:
         return text
 
 def funcArgs(func):
-    if hasattr(func,'im_func'):
-        func = func.im_func
-    if hasattr(func,'func_code'):
-        code = func.func_code
+    if hasattr(func,'__func__'):
+        func = func.__func__
+    if hasattr(func,'__code__'):
+        code = func.__code__
         fname = code.co_name
         args = inspect.getargspec(func)
     else:
@@ -80,7 +82,7 @@ def funcArgs(func):
         func_args = "%s(%s)" % (fname, inspect.formatargspec(*args))
         return func_args
     except TypeError:
-        print "Error with", func
+        print("Error with", func)
         return "%s()" % fname
 
 def checkDoc(str1,str2):
@@ -110,8 +112,8 @@ def checkFunction(func):
     common_args = funcArgs(func)
     common_doc  = func.__doc__
     for module in module_list:
-        if dir(module).__contains__(func.func_name):
-            modfunc = getattr(module,func.func_name)
+        if dir(module).__contains__(func.__name__):
+            modfunc = getattr(module,func.__name__)
             module_args = funcArgs(modfunc)
             if common_args == module_args:
                 module_doc = modfunc.__doc__
@@ -141,16 +143,16 @@ def checkMethod(meth,classname):
     __doc__ strings."""
     str = ""
     differences = ""
-    common_args = funcArgs(meth.im_func)
-    common_doc  = meth.im_func.__doc__
+    common_args = funcArgs(meth.__func__)
+    common_doc  = meth.__func__.__doc__
     #for cls in [getattr(m,classname) for m in module_list if hasattr(m,classname)]:
     for m in module_list:
         if hasattr(m, classname):
             cls = getattr(m,classname)
-            if hasattr(cls, meth.im_func.func_name): #dir(cls).__contains__(meth.im_func.func_name):
-                modulemeth = getattr(cls,meth.im_func.func_name)
+            if hasattr(cls, meth.__func__.__name__): #dir(cls).__contains__(meth.__func__.__name__):
+                modulemeth = getattr(cls,meth.__func__.__name__)
                 module_args = funcArgs(modulemeth)
-                module_doc  = modulemeth.im_func.__doc__
+                module_doc  = modulemeth.__func__.__doc__
                 if common_args == module_args:
                     str += checkDoc(common_doc,module_doc)
                 else:
@@ -169,8 +171,8 @@ def checkStaticMethod(meth,classname):
     common_args = funcArgs(meth)
     common_doc  = meth.__doc__
     for cls in [getattr(m,classname) for m in module_list]:
-        if dir(cls).__contains__(meth.func_name):
-            modulemeth = getattr(cls,meth.func_name)
+        if dir(cls).__contains__(meth.__name__):
+            modulemeth = getattr(cls,meth.__name__)
             module_args = funcArgs(modulemeth)
             module_doc = modulemeth.__doc__
             if common_args == module_args:
@@ -203,11 +205,11 @@ if __name__ == "__main__":
             if opt == "-v":
                 verbose = True
     except getopt.GetoptError:
-        print "Usage: python checkAPI.py [options]\n\nValid options: -v  : verbose output"
+        print("Usage: python checkAPI.py [options]\n\nValid options: -v  : verbose output")
         sys.exit(2)
 
     header = "   ".join(m.__name__.replace('pyNN.','') for m in module_list)
-    print "\n%s%s" % (" "*(indent+3),header)
+    print("\n%s%s" % (" "*(indent+3),header))
     for item in dir(common):
         if item not in exclude_list:
             fmt = "%s-%ds " % ("%",indent)
@@ -219,12 +221,12 @@ if __name__ == "__main__":
                 result, diff = checkFunction(fm)
                 line += result
                 if diff: difference += " " + diff
-            elif type(fm) == types.ClassType or type(fm) == types.TypeType:
+            elif type(fm) == type or type(fm) == type:
                 line += colour(cyan,fmt % item) #+ '(class)       '
                 line += checkClass(item)
-                if line: print line
+                if line: print(line)
                 if verbose:
-                    if inconsistency: print inconsistency.strip("\n")
+                    if inconsistency: print(inconsistency.strip("\n"))
                     inconsistency = ""
                 for subitem in dir(fm):
                     if subitem not in exclude_list:
@@ -243,20 +245,20 @@ if __name__ == "__main__":
                             line += colour(red+bright,fmt % subitem) #+ '(class data)'
                             line += "     (not checked)"
                         if line:
-                            print line
+                            print(line)
                             if difference:
-                                print " "*10 + difference
+                                print(" "*10 + difference)
                         if verbose:
-                            if inconsistency: print inconsistency.strip("\n")
+                            if inconsistency: print(inconsistency.strip("\n"))
                             inconsistency = ""
             else: # data
                 line = colour(bright+red,fmt % item) #+ '(data)        '
                 line += checkData(item)
             if line:
-                print line
+                print(line)
                 if difference:
-                    print " "*10 + difference
+                    print(" "*10 + difference)
             if verbose:
-                if inconsistency: print inconsistency.strip("\n")
+                if inconsistency: print(inconsistency.strip("\n"))
                 inconsistency = ""
-    print "\n%s%s" % (" "*(indent+3),header)
+    print("\n%s%s" % (" "*(indent+3),header))

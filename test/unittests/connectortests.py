@@ -1,3 +1,5 @@
+from builtins import range
+from builtins import object
 from mpi4py import MPI
 import numpy
 from pyNN.random import NumpyRNG, RandomDistribution

@@ -1,3 +1,4 @@
+from builtins import range
 import pyNN.hardware.spikey as pynn
 import numpy as np
 
@@ -5,7 +6,7 @@ import numpy as np
 def emulation(doesWork):
     numberSynapses = 10
     runtime = 1000.0
-    weights = range(0, numberSynapses * numberSynapses)
+    weights = list(range(0, numberSynapses * numberSynapses))
 
     pynn.setup()
     pre = pynn.Population(numberSynapses, pynn.SpikeSourcePoisson)

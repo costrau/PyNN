@@ -1,3 +1,8 @@
+from __future__ import division
+from __future__ import print_function
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import types
 
 # # # # # # # # # # # # # # # # # # # # # # # #
@@ -50,12 +55,12 @@ def init(pynn, verbose=False):
     pyNN = pynn
     hwa = pynn.hardware.hwa
     cfg = pynn.hardware.hwa.cfg
-    VALID_TARGETS[tCHIP] = xrange( 1 )
-    VALID_TARGETS[tBLOCK] = xrange( hwa.numBlocks() )
-    VALID_TARGETS[tNEURON] = xrange( hwa.numBlocks() * hwa.numNeuronsPerBlock() )
-    VALID_TARGETS[tDRIVER] = xrange( hwa.numBlocks() * hwa.numInputsPerNeuron() )
+    VALID_TARGETS[tCHIP] = list(range( 1))
+    VALID_TARGETS[tBLOCK] = list(range( hwa.numBlocks()))
+    VALID_TARGETS[tNEURON] = list(range( hwa.numBlocks() * hwa.numNeuronsPerBlock()))
+    VALID_TARGETS[tDRIVER] = list(range( hwa.numBlocks() * hwa.numInputsPerNeuron()))
     INITIALIZED = True
-    print INFO + "pyhal_tweak initialized."
+    print(INFO + "pyhal_tweak initialized.")
 
 
 # A decorator to set function names in function generators
@@ -76,13 +81,13 @@ def kwargs_from_scope(scope, target):
     elif scope is sSHAREDN:
         assert isinstance(target, int),\
             INFO + 'Invalid target type for scope "%s": %s (expected int)' % (scope, str(target))
-        kwargs['block'] = target / hwa.numNeuronsPerBlock()
+        kwargs['block'] = old_div(target, hwa.numNeuronsPerBlock())
         kwargs['relidx'] = target % 2
     elif scope is sSHAREDD:
         assert isinstance(target, int),\
             INFO + 'Invalid target type for scope "%s": %s (expected int)' % (scope, str(target))
-        kwargs['block'] = target / hwa.numInputsPerNeuron()
-        kwargs['relidx'] = int( ( hwa.numInputsPerNeuron() / 2 ) <= ( target % hwa.numInputsPerNeuron() ) )
+        kwargs['block'] = old_div(target, hwa.numInputsPerNeuron())
+        kwargs['relidx'] = int( ( old_div(hwa.numInputsPerNeuron(), 2) ) <= ( target % hwa.numInputsPerNeuron() ) )
     elif scope is sINDIVIDUAL:
         assert isinstance(target, int),\
             INFO + 'Invalid target type for scope "%s": %s (expected int)' % (scope, str(target))
@@ -149,7 +154,7 @@ def gen_set_driverCurrent(drviname):
             #)
         #drvifunc[drviname](target, value)
         kwargs = {drviname: value}
-        print kwargs
+        print(kwargs)
         cfg.setSynapseDriver(target, **kwargs)
     return set_driverCurrent
 
@@ -200,12 +205,12 @@ def get(pname, target):
     getf = PARM[pname]["getf"]
     kwargs = kwargs_from_scope(scope, target)
     lowlevelstr = getf.__name__ + "("
-    for k,v in kwargs.iteritems():
+    for k,v in list(kwargs.items()):
         lowlevelstr += "%s=%s, " % (k, str(v))
     lowlevelstr += "\b\b)"
     value = getf(**kwargs)
     if VERBOSE:
-        print INFO + "get('%s', target=%s)  -->  %s  -->  RETURN: %s" % (pname, target, lowlevelstr, value)
+        print(INFO + "get('%s', target=%s)  -->  %s  -->  RETURN: %s" % (pname, target, lowlevelstr, value))
     return value
 
 
@@ -222,12 +227,12 @@ def set(pname, target, value):
     setf = PARM[pname]["setf"]
     kwargs = kwargs_from_scope(scope, target)
     lowlevelstr = setf.__name__ + "("
-    for k,v in kwargs.iteritems():
+    for k,v in list(kwargs.items()):
         lowlevelstr += "%s=%s, " % (k, str(v))
     kwargs['value'] = value
     lowlevelstr += "%s=%s)" % ('value', str(value))
     if VERBOSE:
-        print INFO + "set('%s', target=%s, value=%s)  -->  %s" % (pname, target, value, lowlevelstr)
+        print(INFO + "set('%s', target=%s, value=%s)  -->  %s" % (pname, target, value, lowlevelstr))
     setf(**kwargs)
 
 
@@ -308,7 +313,7 @@ __doc__ = """
     
   SUPPORTED PARAMETERS:"""
 
-keys = PARM.keys()
+keys = list(PARM.keys())
 keys.sort()
 for pname in keys:
     d = PARM[pname]

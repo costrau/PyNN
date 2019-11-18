@@ -1,13 +1,18 @@
+from __future__ import division
+from __future__ import print_function
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import pyNN.hardware.spikey as pynn
 import numpy as np
 
 
 mappingOffset = np.random.random_integers(0, 192)
-print 'mapping offset', mappingOffset
+print('mapping offset', mappingOffset)
 noNeurons = 0
 if mappingOffset < 192:
-    noNeurons = np.random.random_integers(0, 192 - mappingOffset) / 2
-print 'number alternating neuron pairs:', noNeurons
+    noNeurons = old_div(np.random.random_integers(0, 192 - mappingOffset), 2)
+print('number alternating neuron pairs:', noNeurons)
 shouldPatternWeights = mappingOffset * [0] + noNeurons * [1, 0]
 
 
@@ -38,7 +43,7 @@ def test():
         for i in range(mappingOffset + 2 * noNeurons):
             if line.find('w ' + str(192 + i)) >= 0:
                 weight = int(line.split(' ')[256 + 2 - 1])
-                print 192 + i, weight
+                print(192 + i, weight)
                 assert(weight == shouldPatternWeights[
                        i]), 'results do not fit expectation'
     f.close()

@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+from __future__ import division
+from __future__ import print_function
+from past.utils import old_div
 import pyNN.hardware.spikey as pynn
 import hwconfig_default_s1v2 as default
 import numpy as np
@@ -25,7 +28,7 @@ def run(mappingOffset):
 
     rateList = []
     for gLeak in gLeakRange:
-        neuron.set({'g_leak': gLeak / default.iLeak_base})
+        neuron.set({'g_leak': old_div(gLeak, default.iLeak_base)})
         pynn.hardware.hwa._neuronsChanged = True
         pynn.run(runtime)
         rateList.append(
@@ -35,7 +38,7 @@ def run(mappingOffset):
 
     rateList = np.array(rateList)
     pol = np.polyfit(rateList[:, 0], rateList[:, 1], 1)  # linear fit
-    print 'fitted polynom:', pol
+    print('fitted polynom:', pol)
     assert pol[0] > slopeMin, 'rate does not change with g_leak'
 
     #import matplotlib.pyplot as plt
@@ -49,7 +52,7 @@ def run(mappingOffset):
 def test_change_ileak():
     mappingOffsetList = np.random.random_integers(0, 191, trials)
     for mappingOffset in mappingOffsetList:
-        print 'mappingOffset', mappingOffset
+        print('mappingOffset', mappingOffset)
         run(mappingOffset)
 
 # last seen on 2015-06-09 by TP

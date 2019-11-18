@@ -1,5 +1,8 @@
+from __future__ import division
 
 
+from builtins import object
+from past.utils import old_div
 import numpy
 
 class STDPSynapse(object):
@@ -52,19 +55,19 @@ class STDPSynapse(object):
         return self.events[:,0][mask], weights[mask]
                 
     def pre_synaptic_spike(self, t):
-        self.P = self.P*numpy.exp((self.tlast_pre-t)/self.tau_plus) + self.A_plus
+        self.P = self.P*numpy.exp(old_div((self.tlast_pre-t),self.tau_plus)) + self.A_plus
         interval = self.tlast_post - t
         assert interval < 0 
         self.tlast_pre = t
-        deltaw = self.w_max * self.M * numpy.exp(interval/self.tau_minus)
+        deltaw = self.w_max * self.M * numpy.exp(old_div(interval,self.tau_minus))
         return deltaw
         
     def post_synaptic_spike(self, t):
-        self.M = self.M*numpy.exp((self.tlast_post-t)/self.tau_minus) - self.A_minus
+        self.M = self.M*numpy.exp(old_div((self.tlast_post-t),self.tau_minus)) - self.A_minus
         interval = t - self.tlast_pre
         assert interval > 0 
         self.tlast_post = t
-        deltaw = self.w_max * self.P * numpy.exp(-interval/self.tau_plus)
+        deltaw = self.w_max * self.P * numpy.exp(old_div(-interval,self.tau_plus))
         return deltaw
         
         

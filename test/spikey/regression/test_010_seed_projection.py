@@ -1,3 +1,4 @@
+from builtins import range
 import pyNN.hardware.spikey as pynn
 import numpy as np
 from multiprocessing import Process, Manager

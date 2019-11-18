@@ -1,3 +1,5 @@
+from __future__ import print_function
+from builtins import range
 import numpy as np
 import sys
 
@@ -7,7 +9,7 @@ limitActive = 2.0  # min rate if stimulated
 filename = "routing_data.txt"
 if len(sys.argv) > 1:
     filename = sys.argv[1]
-print 'loading filename', filename
+print('loading filename', filename)
 
 data = np.loadtxt(filename, skiprows=1)
 

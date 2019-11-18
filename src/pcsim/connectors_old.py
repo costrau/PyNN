@@ -3,6 +3,7 @@
 # $Id$
 # ==============================================================================
 
+from builtins import range
 from pyNN import common, connectors
 import pypcsim
 from pyNN.pcsim import simulator
@@ -17,7 +18,7 @@ class ListConnectionPredicate(pypcsim.PyConnectionDecisionPredicate):
         # now need to turn conn_list into a form suitable for use by decide()
         # a sparse array would be one possibility, but for now we use a dict of dicts
         self._connections = {}
-        for i in xrange(len(conn_array)):
+        for i in range(len(conn_array)):
             src, tgt = conn_array[i][:]
             if src not in self._connections:
                 self._connections[src] = []
@@ -84,7 +85,7 @@ class FromListConnector(connectors.FromListConnector):
     
     def connect(self, projection):
         conn_array = numpy.zeros((len(self.conn_list),4))
-        for i in xrange(len(self.conn_list)):
+        for i in range(len(self.conn_list)):
             src, tgt, weight, delay = self.conn_list[i][:]
             src = projection.pre[tuple(src)]
             tgt = projection.post[tuple(tgt)]

@@ -1,3 +1,5 @@
+from __future__ import print_function
+from builtins import range
 from pyNN.recording import gather
 import numpy
 from mpi4py import MPI
@@ -16,4 +18,4 @@ for x in range(7):
     #print comm.rank, "local", local_data
     if comm.rank == 0:
     #    print "all", all_data
-        print N, time.time()-start_time
+        print(N, time.time()-start_time)

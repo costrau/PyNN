@@ -4,6 +4,7 @@ NEST v2 implementation of the PyNN API.
 
 $Id$
 """
+from __future__ import print_function
 import nest
 from pyNN.nest import simulator
 from pyNN import common, recording, __doc__
@@ -38,12 +39,12 @@ logger = logging.getLogger("PyNN")
 
 def list_standard_models():
     """Return a list of all the StandardCellType classes available for this simulator."""
-    standard_cell_types = [obj for obj in globals().values() if isinstance(obj, type) and issubclass(obj, common.StandardCellType)]
+    standard_cell_types = [obj for obj in list(globals().values()) if isinstance(obj, type) and issubclass(obj, common.StandardCellType)]
     for cell_class in standard_cell_types:
         try:
             create(cell_class)
-        except Exception, e:
-            print "Warning: %s is defined, but produces the following error: %s" % (cell_class.__name__, e)
+        except Exception as e:
+            print("Warning: %s is defined, but produces the following error: %s" % (cell_class.__name__, e))
             standard_cell_types.remove(cell_class)
     return standard_cell_types
 
@@ -57,7 +58,7 @@ def _discrepancy_due_to_rounding(parameters, output_values):
         # refactor the whole thing.
         input_delay = parameters['delay']
         if hasattr(output_values, "__len__"):
-            output_delay = output_values[parameters.keys().index('delay')]
+            output_delay = output_values[list(parameters.keys()).index('delay')]
         else:
             output_delay = output_values
         return abs(input_delay - output_delay) < get_time_step()
@@ -230,7 +231,7 @@ class Population(common.Population):
         # case, it may be quicker to test whether the parameters participating
         # in the computation vary between cells, since if this is not the case
         # we can do the computation here and use nest.SetStatus.
-        for key, value in param_dict.items():
+        for key, value in list(param_dict.items()):
             if not isinstance(self.celltype, str):
                 # Here we check the consistency of the given parameters
                 try:

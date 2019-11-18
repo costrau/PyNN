@@ -71,7 +71,15 @@ Common API implementation/base classes:
 
 $Id$
 """
+from __future__ import division
 
+from future.utils import raise_
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from past.utils import old_div
+from builtins import object
 import types, copy, sys
 import numpy
 import logging
@@ -79,6 +87,7 @@ from math import *
 import operator
 from pyNN import random, utility, recording
 from string import Template
+from functools import reduce
 
 if not 'simulator' in locals():
     simulator = None # should be set by simulator-specific modules
@@ -102,7 +111,7 @@ class NonExistentParameterError(Exception):
         if isinstance(model, type):
             if issubclass(model, StandardModelType):
                 self.model_name = model.__name__
-                self.valid_parameter_names = model.default_parameters.keys()
+                self.valid_parameter_names = list(model.default_parameters.keys())
                 self.valid_parameter_names.sort()
         elif isinstance(model, basestring):
             self.model_name = model
@@ -166,7 +175,7 @@ def is_listlike(obj):
     return hasattr(obj, "__len__") and not isinstance(obj, basestring)
 
 def is_number(obj):
-    return isinstance(obj, float) or isinstance(obj, int) or isinstance(obj, long) or isinstance(obj, numpy.float64)
+    return isinstance(obj, float) or isinstance(obj, int) or isinstance(obj, int) or isinstance(obj, numpy.float64)
 
 def is_conductance(target_cell):
     """
@@ -240,7 +249,7 @@ def distance(src, tgt, mask=None, scale_factor=1.0, offset=0.0,
 class Space(object):
     
     AXES = {'x' : [0],    'y': [1],    'z': [2],
-            'xy': [0,1], 'yz': [1,2], 'xz': [0,2], 'xyz': range(3), None: range(3)}
+            'xy': [0,1], 'yz': [1,2], 'xz': [0,2], 'xyz': list(range(3)), None: list(range(3))}
     
     def __init__(self, axes=None, scale_factor=1.0, offset=0.0,
                  periodic_boundaries=None):
@@ -478,8 +487,8 @@ class StandardModelType(object):
         else:
             parameters = {}
         if supplied_parameters:
-            for k in supplied_parameters.keys():
-                if default_parameters.has_key(k):
+            for k in list(supplied_parameters.keys()):
+                if k in default_parameters:
                     err_msg = "For %s in %s, expected %s, got %s (%s)" % \
                               (k, cls.__name__, type(default_parameters[k]),
                                type(supplied_parameters[k]), supplied_parameters[k])
@@ -487,13 +496,13 @@ class StandardModelType(object):
                     if type(supplied_parameters[k]) == type(default_parameters[k]): 
                         parameters[k] = supplied_parameters[k]
                     # float and something that can be converted to a float
-                    elif type(default_parameters[k]) == types.FloatType: 
+                    elif type(default_parameters[k]) == float: 
                         try:
                             parameters[k] = float(supplied_parameters[k]) 
                         except (ValueError, TypeError):
                             raise InvalidParameterValueError(err_msg)
                     # list and something that can be transformed to a list
-                    elif type(default_parameters[k]) == types.ListType:
+                    elif type(default_parameters[k]) == list:
                         try:
                             parameters[k] = list(supplied_parameters[k])
                         except TypeError:
@@ -516,7 +525,7 @@ class StandardModelType(object):
                 parameters[name] = numpy.array(parameters[name])
             try:
                 pval = eval(D['forward_transform'], globals(), parameters)
-            except NameError, errmsg:
+            except NameError as errmsg:
                 raise NameError("Problem translating '%s' in %s. Transform: '%s'. Parameters: %s. %s" \
                                 % (pname, cls.__name__, D['forward_transform'], parameters, errmsg))
             except ZeroDivisionError:
@@ -528,13 +537,13 @@ class StandardModelType(object):
     def reverse_translate(cls, native_parameters):
         """Translate simulator-specific model parameters to standardized parameters."""
         standard_parameters = {}
-        for name,D  in cls.translations.items():
+        for name,D  in list(cls.translations.items()):
             if is_listlike(cls.default_parameters[name]):
                 tname = D['translated_name']
                 native_parameters[tname] = numpy.array(native_parameters[tname])
             try:
                 standard_parameters[name] = eval(D['reverse_transform'], {}, native_parameters)
-            except NameError, errmsg:
+            except NameError as errmsg:
                 raise NameError("Problem translating '%s' in %s. Transform: '%s'. Parameters: %s. %s" \
                                 % (name, cls.__name__, D['reverse_transform'], native_parameters, errmsg))
         return standard_parameters
@@ -793,7 +802,7 @@ class Population(object):
         if len(addr) == self.ndim:
             id = self.all_cells[addr]
         else:
-            raise InvalidDimensionsError, "Population has %d dimensions. Address was %s" % (self.ndim, str(addr))
+            raise_(InvalidDimensionsError, "Population has %d dimensions. Address was %s" % (self.ndim, str(addr)))
         return id
     
     def __iter__(self):
@@ -833,12 +842,12 @@ class Population(object):
         idx = self.id_to_index(id)
         if self.ndim == 3:
             rows = self.dim[1]; cols = self.dim[2]
-            i = idx/(rows*cols); remainder = idx%(rows*cols)
-            j = remainder/cols; k = remainder%cols
+            i = old_div(idx,(rows*cols)); remainder = idx%(rows*cols)
+            j = old_div(remainder,cols); k = remainder%cols
             coords = (i,j,k)
         elif self.ndim == 2:
             cols = self.dim[1]
-            i = idx/cols; j = idx%cols
+            i = old_div(idx,cols); j = idx%cols
             coords = (i,j)
         elif self.ndim == 1:
             coords = (idx,)
@@ -952,8 +961,8 @@ class Population(object):
         elif len(value_array.shape) == len(self.dim)+1: # the values are themselves 1D arrays
             local_values = value_array[self._mask_local] # not sure this works
         else:
-            raise InvalidDimensionsError, "Population: %s, value_array: %s" % (str(self.dim),
-                                                                               str(value_array.shape))
+            raise_(InvalidDimensionsError, "Population: %s, value_array: %s" % (str(self.dim),
+                                                                               str(value_array.shape)))
         assert local_values.shape[0] == self.local_cells.size, "%d != %d" % (local_values.size, self.local_cells.size)
         
         try:
@@ -1189,7 +1198,7 @@ class Population(object):
                       "-> ID range is $first_id-$last_id",]
             if len(self.local_cells) > 0:
                 lines += ["-> Cell Parameters used for first cell on this node are: "]
-                for name, value in self.local_cells[0].get_parameters().items():
+                for name, value in list(self.local_cells[0].get_parameters().items()):
                     lines += ["    | %-12s: %s" % (name, value)]
             else:
                 lines += ["-> There are no cells on this node."]
@@ -1201,13 +1210,13 @@ class Population(object):
             first_id = self.local_cells[0]
             context.update(local_first_id=first_id)
             cell_parameters = first_id.get_parameters()
-            names = cell_parameters.keys()
+            names = list(cell_parameters.keys())
             names.sort()
             context.update(cell_parameters=[(name,cell_parameters[name]) for name in names])
         context.update(celltype=self.celltype.__class__.__name__)
         context.update(n_cells=len(self))
         context.update(n_cells_local=len(self.local_cells))
-        for k in context.keys():
+        for k in list(context.keys()):
             if k[0] == '_':
                 context.pop(k)
                 
@@ -1447,7 +1456,7 @@ class Projection(object):
             all_lines = { rank(): lines }
             all_lines = recording.gather_dict(all_lines)
             if rank() == 0:
-                lines = reduce(operator.add, all_lines.values())
+                lines = reduce(operator.add, list(all_lines.values()))
         elif num_processes() > 1:
             filename += '.%d' % rank()
         logger.debug("--- Projection[%s].__saveConnections__() ---" % self.label)

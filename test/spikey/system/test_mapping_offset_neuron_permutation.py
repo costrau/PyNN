@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+from builtins import range
 import pyNN.hardware.spikey as pynn
 import numpy as np
 import copy
@@ -64,7 +66,7 @@ def test_mappingOffset_and_Permutation():
     # neurons
     mappingOffset = 2
     noNeurons = 6
-    permutator = [192, 195, 193, 196, 194, 197] + range(198, 384) + range(192)
+    permutator = [192, 195, 193, 196, 194, 197] + list(range(198, 384)) + list(range(192))
 
     run_network(mappingOffset=mappingOffset,
                 neuronPermutation=permutator, noNeurons=noNeurons)
@@ -88,16 +90,16 @@ def test_mappingOffset_and_Permutation_random():
 
     import time
     seed = int(time.time())
-    print 'seed', seed
+    print('seed', seed)
     np.random.seed(seed)
 
     pynn.setup()
     chipVersion = pynn.getChipVersion()
     pynn.end()
 
-    permutatorWorking = range(384)
+    permutatorWorking = list(range(384))
     if chipVersion == 4:
-        permutatorWorking = range(192, 384)
+        permutatorWorking = list(range(192, 384))
 
     for i in range(trials):
         np.random.shuffle(permutatorWorking)
@@ -105,7 +107,7 @@ def test_mappingOffset_and_Permutation_random():
         permutator = copy.copy(permutatorWorking)
         if chipVersion == 4:
             mappingOffset = np.random.random_integers(0, 191)
-            permutator = copy.copy(permutatorWorking) + range(192)
+            permutator = copy.copy(permutatorWorking) + list(range(192))
         run_network(mappingOffset=mappingOffset, neuronPermutation=permutator)
 
         permutator = np.array(permutator)
@@ -133,7 +135,7 @@ def test_mappingOffset_and_Permutation_random():
 
 def test_Permutation_NumpyArray():
     neuronPermutation = np.concatenate(
-        (np.random.permutation(range(192, 384)), range(192)))
+        (np.random.permutation(list(range(192, 384))), list(range(192))))
     # example with no list, but numpy array (test for termination)
     run_network(neuronPermutation=neuronPermutation)
 

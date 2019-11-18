@@ -8,6 +8,7 @@ Classes:
 $Id$
 """
 
+from builtins import object
 from neuron import h
 
 class CurrentSource(object):

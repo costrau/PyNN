@@ -1,7 +1,9 @@
 # 1xn numpy array of Conns
+from builtins import range
+from builtins import object
 import numpy
 
-class Conn:
+class Conn(object):
 
     def __init__(self,w,d):
         self.w = float(w)

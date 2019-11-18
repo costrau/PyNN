@@ -6,6 +6,7 @@ May 2009
 
 $Id$
 """
+from __future__ import print_function
 
 import numpy
 from pyNN.utility import get_script_args
@@ -43,11 +44,11 @@ spike_source.record()
 
 sim.run(200.0)
 
-for label,p in populations.items():
+for label,p in list(populations.items()):
     p.print_v("Results/tsodyksmarkram_%s_%s.v" % (label, simulator_name))
     if populations[label].can_record('gsyn'):
         p.print_gsyn("Results/tsodyksmarkram_%s_%s.gsyn" % (label, simulator_name))
     
-print spike_source.getSpikes()
+print(spike_source.getSpikes())
     
 sim.end()

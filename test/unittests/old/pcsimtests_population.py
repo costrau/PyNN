@@ -9,6 +9,8 @@ Unit tests for pyNN.pcsim package
 
 """
 
+from builtins import zip
+from builtins import range
 import pyNN.common as common
 import pyNN.random as random
 from pyNN.pcsim import *

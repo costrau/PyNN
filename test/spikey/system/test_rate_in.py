@@ -8,6 +8,7 @@ Max input rate is half of system clock (100MHz/2 in hardware = 5kHz bio),
 because each not full spike packet needs command packet.
 If packing possible max input rate should be three times the system clock (300MHz in hardware = 30kHz bio).
 """
+from __future__ import print_function
 
 
 def test_poisson():
@@ -30,7 +31,7 @@ def test_poisson():
 
     pynn.run(duration)
     lost, sent = pynn.getInputSpikes()
-    print 'Number of input spikes (lost, sent, %lost)', lost, sent, float(lost) / sent * 1e2
+    print('Number of input spikes (lost, sent, %lost)', lost, sent, float(lost) / sent * 1e2)
 
     assert float(lost) / sent * 1e2 < limLost, 'Too many spikes lost!'
 
@@ -47,7 +48,7 @@ def test_regular():
 
     np.random.seed(int(time.time()))
     lineDriverNo = np.random.random_integers(0, 255)
-    print 'Using line driver number', lineDriverNo
+    print('Using line driver number', lineDriverNo)
 
     duration = 1000.0  # ms
     h = 1e3 / 5000.0  # 0.2 ms
@@ -64,7 +65,7 @@ def test_regular():
 
     pynn.run(duration)
     lost, sent = pynn.getInputSpikes()
-    print 'Number of input spikes (lost, sent)', lost, sent
+    print('Number of input spikes (lost, sent)', lost, sent)
     assert lost == 0, 'There should not be any spikes lost!'
 
     pynn.end()
@@ -96,7 +97,7 @@ def test_regular_packed():
 
     pynn.run(duration)
     lost, sent = pynn.getInputSpikes()
-    print 'Number of input spikes (lost, sent)', lost, sent
+    print('Number of input spikes (lost, sent)', lost, sent)
     assert lost == 0, 'There should not be any spikes lost!'
 
     pynn.end()

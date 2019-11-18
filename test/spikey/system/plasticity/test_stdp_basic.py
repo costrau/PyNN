@@ -1,3 +1,7 @@
+from __future__ import division
+from __future__ import print_function
+from builtins import str
+from past.utils import old_div
 import unittest
 
 
@@ -89,20 +93,20 @@ class test_stdp_basic(unittest.TestCase):
                 np.concatenate((stimulus, stimulusMeasure)))
             runtime = lastInputSpike + procCorrOffset
             pynn.hardware.hwa.autoSTDPFrequency = runtime
-            print 'runtime: ' + str(runtime) + '; last input spike: ' + str(lastInputSpike) + '; STDP readout: ' + str(runtime)
+            print('runtime: ' + str(runtime) + '; last input spike: ' + str(lastInputSpike) + '; STDP readout: ' + str(runtime))
             pynn.run(runtime)
 
             # get flag and spikes
-            corrFlag = (np.array(prj.getWeightsHW(
-                readHW=True, format='list')) / pynn.minExcWeight())[0]
+            corrFlag = (old_div(np.array(prj.getWeightsHW(
+                readHW=True, format='list')), pynn.minExcWeight()))[0]
             spikes = neuron.getSpikes()[:, 1]
-            print 'stimulus:', stimulus
-            print 'measure:', stimulusMeasure
-            print 'post:', spikes
+            print('stimulus:', stimulus)
+            print('measure:', stimulusMeasure)
+            print('post:', spikes)
             self.assertTrue(len(stimulusMeasure) == len(
                 spikes), 'No proper spiking!')
-            print 'correlation flag: ' + str(corrFlag)
-            print 'deltaT (is / should / limit):', np.mean(spikes - stimulusMeasure), '/', deltaT, '/', deltaTLimit
+            print('correlation flag: ' + str(corrFlag))
+            print('deltaT (is / should / limit):', np.mean(spikes - stimulusMeasure), '/', deltaT, '/', deltaTLimit)
             self.assertTrue(abs(np.mean(spikes - stimulusMeasure) -
                                 deltaT) <= deltaTLimit, 'No precise spiking!')
             if deltaT > 0:  # causal

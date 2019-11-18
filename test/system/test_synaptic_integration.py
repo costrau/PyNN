@@ -27,7 +27,9 @@ Example parameter file:
     'results_dir': '/home/andrew/Projects/PyNNTests/test_synaptic_integration'
 }
 """
+from __future__ import print_function
 
+from builtins import range
 import sys
 import numpy
 from NeuroTools.parameters import ParameterSet
@@ -75,7 +77,7 @@ def run(parameters, sim_list):
 
 def calc_distances(spike_data):
     distances = {'victorpurpura': {}, 'kreuz': {}}
-    for measure in distances.keys():
+    for measure in list(distances.keys()):
         for sim1 in sim_list:
             distances[measure][sim1.__name__] = {} 
             for sim2 in sim_list:
@@ -93,8 +95,8 @@ def calc_Vm_diff(vm_data):
             vmlist = VmList([],[], dt=v1.dt)
             ## NEST seems to be missing some values at the start and end of the trace,
             ## so we trim all signals to the minimum length. This should be fixed in PyNN
-            print v1.t_start, v2.t_start
-            print v1.t_stop, v2.t_stop
+            print(v1.t_start, v2.t_start)
+            print(v1.t_stop, v2.t_stop)
             assert len(v1) == len(v2)
             #t_start = max(v1.t_start, v2.t_start)
             #t_stop = min(v1.t_stop, v2.t_stop)
@@ -110,7 +112,7 @@ def plot_figure(spike_data, vm_data, model_parameters):
     fig = SimpleMultiplot(2, 1, xlabel="Time (ms)")
     panel = fig.next_panel()
     # plot Vm
-    for sim_name, vm in vm_data.items():
+    for sim_name, vm in list(vm_data.items()):
         vm['post'].plot(display=panel, kwargs={'label': "post (%s)" % sim_name})
     panel.set_ylim(-90,-30)
     panel.legend(loc='upper right')
@@ -118,7 +120,7 @@ def plot_figure(spike_data, vm_data, model_parameters):
     panel = fig.next_panel()
     tick_labels = []
     i = 0
-    for sim_name, spikes in spike_data.items():
+    for sim_name, spikes in list(spike_data.items()):
         for pop in 'pre', 'post':
             if len(spikes[pop]) > 0:
                 label = "%s (%s)" % (pop, sim_name.split('.')[1])
@@ -131,7 +133,7 @@ def plot_figure(spike_data, vm_data, model_parameters):
                "|", label=label, markersize=25 )
     tick_labels.append(label)
     panel.set_ylim(-0.5,i+0.5)
-    panel.set_yticks(range(7))
+    panel.set_yticks(list(range(7)))
     panel.set_yticklabels(tick_labels, size=6)
     return fig
 
@@ -150,9 +152,9 @@ if __name__ == "__main__":
     
     if len(sim_list) >= 2:
         distances = calc_distances(spike_data)
-        print distances
+        print(distances)
         vm_diff = calc_Vm_diff(vm_data)
-        print vm_diff
+        print(vm_diff)
     
         ds = datastore.ShelveDataStore(root_dir=parameters.results_dir, key_generator=datastore.keygenerators.hash_pickle)
         this = sys.modules[__name__]

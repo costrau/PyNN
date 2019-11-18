@@ -10,6 +10,7 @@ Unit tests for pyNN.pcsim package
 
 """
 
+from builtins import range
 import pyNN.common as common
 import pyNN.random as random
 from pyNN.pcsim import *
@@ -204,7 +205,7 @@ class RecordTest(unittest.TestCase):
     def testRecordVmTextFormat(self):        
         analog_nrns = create(AnalogInputNeuron, {}, 10)
         for i, n in enumerate(analog_nrns):
-            simulator.net.object(n).setAnalogValues( [ (k + i) % 10 for k in xrange(1000)])
+            simulator.net.object(n).setAnalogValues( [ (k + i) % 10 for k in range(1000)])
         record_v(analog_nrns, "recordTestVmFile1.txt")
         run(100)
         end(compatible_output=False)
@@ -214,7 +215,7 @@ class RecordTest(unittest.TestCase):
             values = line.split()
             values = [ float(i) for i in values ]
             self.assertEqual( expected_id, int(values[0]) )            
-            self.assertEqual( [ float((expected_id + k) % 10) for k in xrange(1000)], values[1:] )
+            self.assertEqual( [ float((expected_id + k) % 10) for k in range(1000)], values[1:] )
             expected_id += 1
         
         

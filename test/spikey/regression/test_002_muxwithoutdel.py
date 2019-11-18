@@ -1,3 +1,6 @@
+from __future__ import print_function
+from builtins import str
+from builtins import range
 import unittest
 import shutil
 import difflib
@@ -94,8 +97,8 @@ class test_002_muxwithoutdel(unittest.TestCase):
         emuWithMappingOffset()  # this caused failure
         memShouldList = getMemNoLoop()
         memIsList = getMemLoop()
-        print 'should', memShouldList
-        print 'is', memIsList
+        print('should', memShouldList)
+        print('is', memIsList)
 
         for extID in range(len(extListWith)):
             spikeyconfigFileWith = open(

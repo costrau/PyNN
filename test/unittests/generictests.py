@@ -2,12 +2,18 @@
 Unit tests for all simulators
 $Id$
 """
+from __future__ import division
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import sys
 import unittest
 import numpy
 import os
-import cPickle as pickle
+import pickle as pickle
 from pyNN import common, random, utility, recording
 import glob
 
@@ -179,7 +185,7 @@ class IDSetGetTest(unittest.TestCase):
         for cell_class in IDSetGetTest.model_list:
             cell_list = [cell for cell in self.cells[cell_class.__name__] if cell.local] + \
                         [cell for cell in self.populations[cell_class.__name__].local_cells]
-            parameter_names = cell_class.default_parameters.keys()
+            parameter_names = list(cell_class.default_parameters.keys())
             for cell in cell_list:
                 for name in parameter_names:
                     if name == 'spike_times':
@@ -190,13 +196,13 @@ class IDSetGetTest(unittest.TestCase):
                         assert isinstance(o, list), type(o)
                         try:
                             assert i == o, "%s (%s) != %s (%s)" % (i,o, type(i), type(o))
-                        except ValueError, errmsg:
+                        except ValueError as errmsg:
                             raise ValueError("%s. %s (%s) != %s (%s)" % (errmsg, i, type(i), o, type(o)))
                         self.assertEqual(i, o)
                     else:
                         if name == 'v_thresh':
                             if 'v_spike' in parameter_names:
-                                i = (cell.__getattr__('v_spike') + max(cell.__getattr__('v_reset'), cell.__getattr__('v_init')))/2
+                                i = old_div((cell.__getattr__('v_spike') + max(cell.__getattr__('v_reset'), cell.__getattr__('v_init'))),2)
                             elif 'v_init' in parameter_names:
                                 i = max(cell.__getattr__('v_reset'), cell.__getattr__('v_init')) + numpy.random.uniform(0.1, 100)
                             else:
@@ -212,7 +218,7 @@ class IDSetGetTest(unittest.TestCase):
                             i = numpy.random.uniform(0.1, 100) # tau_refrac is always at least dt (=0.1)
                         try:
                             cell.__setattr__(name, i)
-                        except Exception, e:
+                        except Exception as e:
                             raise Exception("%s. %s=%g in %s with %s" % (e, name, i, cell_class, cell.get_parameters()))
                         o = cell.__getattr__(name)
                         self.assertEqual(type(i), type(o), "%s: input: %s, output: %s" % (name, type(i), type(o)))
@@ -228,7 +234,7 @@ class IDSetGetTest(unittest.TestCase):
         for cell_class in IDSetGetTest.model_list:
             cell_list = [cell for cell in self.cells[cell_class.__name__] if cell.local] + \
                         [cell for cell in self.populations[cell_class.__name__].local_cells]
-            parameter_names = cell_class.default_parameters.keys()
+            parameter_names = list(cell_class.default_parameters.keys())
             if 'v_thresh' in parameter_names: # make sure 'v_thresh' comes first
                 parameter_names.remove('v_thresh')
                 parameter_names = ['v_thresh'] + parameter_names
@@ -250,7 +256,7 @@ class IDSetGetTest(unittest.TestCase):
                         new_parameters[name] = numpy.random.uniform(0.1, 100) # tau_refrac is always at least dt (=0.1)
                 try:
                     cell.set_parameters(**new_parameters)
-                except Exception, e:
+                except Exception as e:
                     raise Exception("%s. %s in %s" % (e, new_parameters, cell_class))
                 retrieved_parameters = cell.get_parameters()
                 self.assertEqual(set(new_parameters.keys()), set(retrieved_parameters.keys()))
@@ -265,7 +271,7 @@ class IDSetGetTest(unittest.TestCase):
     
     def testGetCellClass(self):
         assert 'cellclass' in common.IDMixin.non_parameter_attributes
-        for name, pop in self.populations.items():
+        for name, pop in list(self.populations.items()):
             assert isinstance(pop[0], common.IDMixin)
             assert 'cellclass' in pop[0].non_parameter_attributes
             if len(pop.local_cells)>0:
@@ -274,7 +280,7 @@ class IDSetGetTest(unittest.TestCase):
             self.assertRaises(Exception, setattr, pop[0].cellclass, 'dummy')
         
     def testGetSetPosition(self):
-        for cell_group in self.cells.values():
+        for cell_group in list(self.cells.values()):
             pos = cell_group[0].position
             self.assertEqual(len(pos), 3)
             cell_group[0].position = (9.8, 7.6, 5.4)
@@ -325,7 +331,7 @@ class PopulationInitTest(unittest.TestCase):
         self.assertEqual(net.size, 9)
         n_cells_local = len([id for id in net])
         # round-robin distribution
-        min = 9/sim.num_processes()
+        min = old_div(9,sim.num_processes())
         max = min+1
         assert min <= n_cells_local <= max, "%d not between %d and %d" % (n_cells_local, min, max)
     
@@ -618,7 +624,7 @@ class PopulationRecordTest(unittest.TestCase): # to write later
         sim.run(simtime)
         msc = self.pop1.meanSpikeCount()
         if sim.rank() == 0: # only on master node
-            rate = msc*1000/simtime
+            rate = old_div(msc*1000,simtime)
             ##print self.pop1.recorders['spikes'].recorders
             assert (20*0.8 < rate) and (rate < 20*1.2), "rate is %s" % rate
         #rate = self.pop3.meanSpikeCount()*1000/simtime
@@ -1071,7 +1077,7 @@ class SpikeSourceTest(unittest.TestCase):
             assert min(spikes) >= start, min(spikes)
             assert max(spikes) <= start+duration, "%g > %g" % (max(spikes), start+duration)
             expected_count = duration/1000.0*rate*n
-            diff = abs(len(spikes)-expected_count)/expected_count
+            diff = old_div(abs(len(spikes)-expected_count),expected_count)
             assert diff <= 0.1, "diff = %g. Expected count = %d, actual count = %d" % (diff, expected_count, len(spikes))
     
 class FileTest(unittest.TestCase):

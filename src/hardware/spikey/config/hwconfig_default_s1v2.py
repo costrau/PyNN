@@ -1,3 +1,4 @@
+from builtins import range
 import numpy
 
 #######################################################
@@ -13,7 +14,7 @@ numNeurons = neuronsPerBlock * numBlocks
 numVout = 25
 
 
-recordableNeurons = range(192, 384, 1)
+recordableNeurons = list(range(192, 384, 1))
 
 #############################
 # # # # # # # # # # # # # fixed hardware parameters # # # # # # # # # # # # #

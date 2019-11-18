@@ -2,7 +2,10 @@
 A small framework to make it easier to run the same model on multiple
 simulators.
 """
+from __future__ import print_function
 
+from builtins import range
+from builtins import object
 from multiprocessing import Process, Queue
 from pyNN import common, recording
 
@@ -12,17 +15,17 @@ def run_simulation(network_model, sim, parameters, input_queue, output_queue):
     `parameters`, and then consume tasks from `input_queue` until receiving the
     command 'STOP'.
     """
-    print "Running simulation with %s" % sim.__name__
+    print("Running simulation with %s" % sim.__name__)
     common.simulator = sim.simulator
     recording.simulator = sim.simulator
     network = network_model(sim, parameters)
-    print "Network constructed with %s." % sim.__name__
+    print("Network constructed with %s." % sim.__name__)
     for obj_name, attr, args, kwargs in iter(input_queue.get, 'STOP'):
-        print "%s processing command %s.%s(%s, %s)" % (sim.__name__, obj_name, attr, args, kwargs)
+        print("%s processing command %s.%s(%s, %s)" % (sim.__name__, obj_name, attr, args, kwargs))
         obj = eval(obj_name)
         result = getattr(obj, attr)(*args, **kwargs)
         output_queue.put(result)
-    print "Simulation with %s complete" % sim.__name__
+    print("Simulation with %s complete" % sim.__name__)
     #sim.end()
 
 
@@ -53,7 +56,7 @@ class MultiSim(object):
             self.result_queues[sim.__name__] = result_queue
             
     def __iter__(self):
-        return self.processes.itervalues()
+        return iter(list(self.processes.values()))
     
     def __getattr__(self, name):
         """

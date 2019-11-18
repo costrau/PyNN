@@ -1,3 +1,4 @@
+from builtins import range
 import pylogging as pylog
 myLogger = pylog.get("PyN.syn")
 
@@ -86,8 +87,8 @@ class AdditiveWeightDependence(synapses.AdditiveWeightDependence):
     def __init__(self, w_min=0.0, w_max=1.0, A_plus=1.0 / 16, A_minus=1.0 / 16):
         myLogger.info(
             "Additive STDP is implemented as initial weight +1 (for potentiation) -1 (for depression)")
-        causalLUT = range(1, 16) + [15]
-        acausalLUT = [0] + range(0, 15)
+        causalLUT = list(range(1, 16)) + [15]
+        acausalLUT = [0] + list(range(0, 15))
         pyNN.hardware.spikey.hardware.setLUT(causalLUT, acausalLUT, first=True)
 
 

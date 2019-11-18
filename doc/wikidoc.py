@@ -1,6 +1,8 @@
 # coding: utf-8
 """Writes documentation for the API in Wiki format."""
+from __future__ import print_function
 
+from builtins import str
 import sys
 import pyNN.common
 import types, string, re, logging
@@ -104,9 +106,9 @@ def _(str):
 
 def funcArgs(func):
     logging.info('Called funcArgs(%s)' % func)
-    if hasattr(func,'im_func'):
-        func = func.im_func
-    code = func.func_code
+    if hasattr(func,'__func__'):
+        func = func.__func__
+    code = func.__code__
     fname = code.co_name
     callargs = code.co_argcount
     args = code.co_varnames[:callargs]
@@ -120,16 +122,16 @@ def func_sig(func):
     """
     logging.info('Called func_sig(%s)' % func)
     if hasattr(func,'im_func'): # func is a method
-        func = func.im_func
+        func = func.__func__
     try:
-        code = func.func_code
+        code = func.__code__
         fname = code.co_name
         callargs = code.co_argcount
         # XXX Uses hard coded values taken from Include/compile.h
         args = list(code.co_varnames[:callargs])
-        if func.func_defaults:
-            i = len(args) - len(func.func_defaults)
-            for default in func.func_defaults:
+        if func.__defaults__:
+            i = len(args) - len(func.__defaults__)
+            for default in func.__defaults__:
                 if isinstance(default,float):
                     r = str(default)
                 else:
@@ -165,7 +167,7 @@ for entry in dir(pyNN.common):
         instance = eval('pyNN.common.%s' % entry)
         entry_type = type(instance)
         logging.info('  %-30s %s' % (entry,entry_type))
-        if entry_type in [types.ClassType, types.TypeType]:
+        if entry_type in [type, type]:
             classes[entry] = { 'methods': [], 'data': [], 'staticmethods': [] }
             for classentry in dir(instance):
                 if classentry not in exclude and (classentry[0] != '_' or classentry[0:2] == '__'): # don't include private methods
@@ -199,10 +201,10 @@ logging.info("==== DATA ====")
 outputStr += category_fmt % "Data"
 for element in data:
     instance = eval('pyNN.common.%s' % element)
-    if type(instance) == types.DictType:
+    if type(instance) == dict:
         outputStr += dict_fmt % element
         outputStr += table_begin
-        for k,v in instance.items():
+        for k,v in list(instance.items()):
             if output == 'latex':
                 v = str(v).replace('{',' $\\lbrace$').replace('}',' $\\rbrace$')
             outputStr += table_row_fmt % (k,v)
@@ -224,7 +226,7 @@ logging.info("==== CLASSES ====")
 error_classes = {}
 celltype_classes = {}
 other_classes = {}
-for classname in classes.keys():
+for classname in list(classes.keys()):
     if classname.find('Error') > -1:
         error_classes[classname] = classes[classname]
     elif issubclass(eval('pyNN.common.%s' % classname),pyNN.common.StandardCellType):
@@ -233,14 +235,14 @@ for classname in classes.keys():
         other_classes[classname] = classes[classname]
 
 logging.info('Sorting classes...')
-logging.info('Error classes:    %s' % ', '.join(error_classes.keys()))
-logging.info('Celltype classes: %s' % ', '.join(celltype_classes.keys()))
-logging.info('Other classes:    %s' % ', '.join(other_classes.keys()))
+logging.info('Error classes:    %s' % ', '.join(list(error_classes.keys())))
+logging.info('Celltype classes: %s' % ', '.join(list(celltype_classes.keys())))
+logging.info('Other classes:    %s' % ', '.join(list(other_classes.keys())))
 
 # Now iterate through the classes
 outputStr += category_fmt % "Classes"
 for classes in [celltype_classes, other_classes, error_classes]:
-    classlist = classes.keys()
+    classlist = list(classes.keys())
     classlist.sort()
     for classname in classlist:
         outputStr += class_fmt % classname
@@ -263,11 +265,11 @@ for classes in [celltype_classes, other_classes, error_classes]:
                     outputStr += _(methodinst.__doc__.strip())
         for element in classes[classname]['data']:
             instance = eval('pyNN.common.%s.%s' % (classname,element))
-            if type(instance) == types.DictType:
+            if type(instance) == dict:
                 outputStr += dict_fmt % element
                 if len(instance) > 0:
                     outputStr += table_begin
-                    for k,v in instance.items():
+                    for k,v in list(instance.items()):
                         if output == 'latex':
                             v = str(v).replace('{',' $\\lbrace$').replace('}',' $\\rbrace$')
                             outputStr += table_row_fmt % (k,v)
@@ -292,4 +294,4 @@ if output == 'trac':
     outputStr = outputStr.replace('__','!__')
     outputStr = camelcase.sub(r'!\1',outputStr)
 
-print outputStr
+print(outputStr)

@@ -3,6 +3,8 @@
 # intermediate interface for wrapping hardware access with PyNN.
 # The functions try to hide hardware specific details as far as possible.
 
+from builtins import str
+from builtins import range
 import pylogging as pylog
 myLogger = pylog.get("PyN.hal")
 
@@ -16,7 +18,7 @@ import sys
 import pyhal_neurotypes as neurotypes
 import time
 
-if os.environ.has_key('PYNN_HW_PATH'):
+if 'PYNN_HW_PATH' in os.environ:
     basePath = os.path.join(os.environ['PYNN_HW_PATH'], 'config')
 else:
     raise EnvironmentError(
@@ -63,7 +65,7 @@ def initialize(defaultValue=0.0, debug=False, fullReset=False, **extra_params):
     global dictConnectionType
 
     # print all of numpy arrays, no shortening of output
-    numpy.set_printoptions(threshold=sys.maxint)
+    numpy.set_printoptions(threshold=sys.maxsize)
 
     # if the flag 'fullReset' is set, destroy hardware access and network
     # objects
@@ -440,9 +442,9 @@ def getOutput(runtime=numpy.infty, numNeurons=numpy.infty, minimumISI=0.0):
         lastSpikeDict = {}
         doubleCleanedTimes = []
         doubleCleanedNeurons = []
-        for i in xrange(len(dataIDsMasked)):
+        for i in range(len(dataIDsMasked)):
             skipThisSpike = False
-            if lastSpikeDict.has_key(dataIDsMasked[i]):
+            if dataIDsMasked[i] in lastSpikeDict:
                 if (dataTimesMasked[i] - lastSpikeDict[dataIDsMasked[i]]) < minimumISI:
                     skipThisSpike = True
             if not skipThisSpike:

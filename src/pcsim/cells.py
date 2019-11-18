@@ -3,7 +3,9 @@ Standard cells for pcsim
 
 $Id$
 """
+from __future__ import division
 
+from past.utils import old_div
 from pyNN import common, cells
 import pypcsim
 import numpy
@@ -149,10 +151,10 @@ def sanitize_spike_times(spike_times):
     time_step = common.get_time_step()
     try:
         spike_times = numpy.array(spike_times, float)
-    except ValueError, e:
+    except ValueError as e:
         raise common.InvalidParameterValueError("Spike times must be floats. %s")
     
-    bins = (spike_times/time_step).astype('int')
+    bins = (old_div(spike_times,time_step)).astype('int')
     mask = numpy.concatenate((numpy.array([True]), bins[1:] != bins[:-1]))
     if mask.sum() < len(bins):
         logger.warn("Spikes have been thrown away because they were too close together.")

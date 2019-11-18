@@ -1,3 +1,7 @@
+from __future__ import division
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import numpy
 import brian
 from pyNN import recording
@@ -45,23 +49,23 @@ class Recorder(recording.Recorder):
             for device in self._devices:
                 device.record = list(self.recorded)
                 device.recordindex = dict((i,j) for i,j in zip(device.record,
-                                                               range(len(device.record))))
+                                                               list(range(len(device.record)))))
     
     def _get(self, gather=False, compatible_output=True):
         """Return the recorded data as a Numpy array."""
         if self.variable == 'spikes':
-            data = numpy.array([(id, time/ms) for (id, time) in self._devices[0].spikes if id in self.recorded])
+            data = numpy.array([(id, old_div(time,ms)) for (id, time) in self._devices[0].spikes if id in self.recorded])
         elif self.variable == 'v':
-            values = self._devices[0].values/mV
-            times = self._devices[0].times/ms
+            values = old_div(self._devices[0].values,mV)
+            times = old_div(self._devices[0].times,ms)
             data = numpy.empty((0,3))
             for id, row in enumerate(values):
                 new_data = numpy.array([numpy.ones(row.shape)*id, times, row]).T
                 data = numpy.concatenate((data, new_data))
         elif self.variable == 'gsyn':
-            values1 = self._devices[0].values/uS
-            values2 = self._devices[1].values/uS
-            times = self._devices[0].times/ms
+            values1 = old_div(self._devices[0].values,uS)
+            values2 = old_div(self._devices[1].values,uS)
+            times = old_div(self._devices[0].times,ms)
             data = numpy.empty((0,4))
             for id, (row1, row2) in enumerate(zip(values1, values2)):
                 assert row1.shape == row2.shape

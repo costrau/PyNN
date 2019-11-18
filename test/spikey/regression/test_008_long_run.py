@@ -1,3 +1,4 @@
+from __future__ import print_function
 import pyNN.hardware.spikey as pynn
 
 
@@ -23,7 +24,7 @@ def maxSpikesIn(runtime):
     spikes = neuron.getSpikes()
     lost, sent = pynn.getInputSpikes()
 
-    print 'spikes in / out', sent, len(spikes)
+    print('spikes in / out', sent, len(spikes))
 
     pynn.end()
 
@@ -50,7 +51,7 @@ def maxSpikesOut(runtime):
     spikes = neuron.getSpikes()[:, 1]
     lost, sent = pynn.getInputSpikes()
 
-    print 'spikes in / out', sent, len(spikes)
+    print('spikes in / out', sent, len(spikes))
 
     pynn.end()
 
@@ -79,7 +80,7 @@ def maxRuntime(runtime):
     spikes = neuron.getSpikes()
     lost, sent = pynn.getInputSpikes()
 
-    print 'spikes in / out', sent, len(spikes)
+    print('spikes in / out', sent, len(spikes))
 
     pynn.end()
 

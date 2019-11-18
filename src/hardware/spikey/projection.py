@@ -1,3 +1,11 @@
+from __future__ import division
+from __future__ import print_function
+from builtins import next
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import pylogging as pylog
 myLogger = pylog.get("PyN.prj")
 
@@ -81,7 +89,7 @@ class WDManager(object):
 
 class Projection(common.Projection, WDManager):
 
-    class ConnectionDict:
+    class ConnectionDict(object):
         """docstring needed."""
 
         def __init__(self, parent):
@@ -157,7 +165,7 @@ class Projection(common.Projection, WDManager):
 
     def connections(self):
         """for conn in prj.connections()..."""
-        for i in xrange(len(self)):
+        for i in range(len(self)):
             yield self.connection[i]
 
     # --- Connection methods -------------------------------------------------
@@ -168,7 +176,7 @@ class Projection(common.Projection, WDManager):
         """
         allow_self_connections = True  # when pre- and post- are the same population,
         # is a cell allowed to connect to itself?
-        if parameters and parameters.has_key('allow_self_connections'):
+        if parameters and 'allow_self_connections' in parameters:
             allow_self_connections = parameters['allow_self_connections']
         c = AllToAllConnector(allow_self_connections)
         return c.connect(self)
@@ -195,7 +203,7 @@ class Projection(common.Projection, WDManager):
             p_connect = float(parameters)
         except TypeError:
             p_connect = parameters['p_connect']
-            if parameters.has_key('allow_self_connections'):
+            if 'allow_self_connections' in parameters:
                 allow_self_connections = parameters['allow_self_connections']
         c = FixedProbabilityConnector(p_connect, allow_self_connections)
         return c.connect(self)
@@ -207,11 +215,11 @@ class Projection(common.Projection, WDManager):
         for probability, involving 'd', e.g. "exp(-abs(d))", or "float(d<3)"
         """
         allow_self_connections = True
-        if type(parameters) == types.StringType:
+        if type(parameters) == bytes:
             d_expression = parameters
         else:
             d_expression = parameters['d_expression']
-            if parameters.has_key('allow_self_connections'):
+            if 'allow_self_connections' in parameters:
                 allow_self_connections = parameters['allow_self_connections']
         c = DistanceDependentProbabilityConnector(d_expression,
                                                   allow_self_connections=allow_self_connections)
@@ -220,7 +228,7 @@ class Projection(common.Projection, WDManager):
     def _fixedNumberPre(self, parameters):
         """Each presynaptic cell makes a fixed number of connections."""
         n = parameters['n']
-        if parameters.has_key('allow_self_connections'):
+        if 'allow_self_connections' in parameters:
             allow_self_connections = parameters['allow_self_connections']
         c = FixedNumberPreConnector(n, allow_self_connections)
         return c.connect(self)
@@ -228,7 +236,7 @@ class Projection(common.Projection, WDManager):
     def _fixedNumberPost(self, parameters):
         """Each postsynaptic cell receives a fixed number of connections."""
         n = parameters['n']
-        if parameters.has_key('allow_self_connections'):
+        if 'allow_self_connections' in parameters:
             allow_self_connections = parameters['allow_self_connections']
         c = FixedNumberPostConnector(n, allow_self_connections)
         return c.connect(self)
@@ -241,12 +249,12 @@ class Projection(common.Projection, WDManager):
             fileobj = parameters
             # should check here that fileobj is already open for reading
             lines = fileobj.readlines()
-        elif type(parameters) == types.StringType:
+        elif type(parameters) == bytes:
             filename = parameters
             # now open the file...
             f = open(filename, 'r', DEFAULT_BUFFER_SIZE)
             lines = f.readlines()
-        elif type(parameters) == types.DictType:
+        elif type(parameters) == dict:
             # dict could have 'filename' key or 'file' key
             # implement this...
             raise NotImplementedError("Argument type not yet implemented")
@@ -273,7 +281,7 @@ class Projection(common.Projection, WDManager):
         where pre_addr and post_addr are both neuron addresses, i.e. tuples or
         lists containing the neuron array coordinates.
         """
-        for i in xrange(len(conn_list)):
+        for i in range(len(conn_list)):
             src, tgt, weight, delay = conn_list[i][:]
             src = self.pre[tuple(numpy.atleast_1d(src))]
             tgt = self.post[tuple(numpy.atleast_1d(tgt))]
@@ -299,7 +307,7 @@ class Projection(common.Projection, WDManager):
         if not isinstance(w, (list, numpy.ndarray)):
             w = [w] * len(self._sources)
 
-        for i in xrange(len(self._sources)):
+        for i in range(len(self._sources)):
             pyNN.hardware.spikey.connect(source=self._sources[i], target=self._targets[i], weight=w[
                                          i], synapse_type=self.synapse_type, synapse_dynamics=self.synapse_dynamics)
         self._weights = w
@@ -377,7 +385,7 @@ class Projection(common.Projection, WDManager):
         for s, t in zip(self._sources, self._targets):
             targetHardwareNeuron = pyNN.hardware.spikey.hardware.hwa.hardwareIndex(
                 t)
-            targetHardwareBlock = targetHardwareNeuron / default.neuronsPerBlock
+            targetHardwareBlock = old_div(targetHardwareNeuron, default.neuronsPerBlock)
             targetSynapseBlockOffset = targetHardwareBlock * default.numPresyns
             if s.cell.__class__ == pyNN.hardware.spikey.IF_facets_hardware1:
                 driverIndex = targetSynapseBlockOffset + \
@@ -394,7 +402,7 @@ class Projection(common.Projection, WDManager):
         return value_list
 
     def getDrvifallFactorsRange(self, syntype):
-        return [default.currentMin / default.drvifall_base[syntype], default.currentMax / default.drvifall_base[syntype]]
+        return [old_div(default.currentMin, default.drvifall_base[syntype]), old_div(default.currentMax, default.drvifall_base[syntype])]
 
     def setDrvifallFactors(self, value_list):
         """
@@ -418,7 +426,7 @@ class Projection(common.Projection, WDManager):
             t = x[1]
             targetHardwareNeuron = pyNN.hardware.spikey.hardware.hwa.hardwareIndex(
                 t)
-            targetHardwareBlock = targetHardwareNeuron / default.neuronsPerBlock
+            targetHardwareBlock = old_div(targetHardwareNeuron, default.neuronsPerBlock)
             targetSynapseBlockOffset = targetHardwareBlock * default.numPresyns
             if s.cell.__class__ == pyNN.hardware.spikey.IF_facets_hardware1:
                 driverIndex = targetSynapseBlockOffset + \
@@ -450,7 +458,7 @@ class Projection(common.Projection, WDManager):
         for s, t in zip(self._sources, self._targets):
             targetHardwareNeuron = pyNN.hardware.spikey.hardware.hwa.hardwareIndex(
                 t)
-            targetHardwareBlock = targetHardwareNeuron / default.neuronsPerBlock
+            targetHardwareBlock = old_div(targetHardwareNeuron, default.neuronsPerBlock)
             targetSynapseBlockOffset = targetHardwareBlock * default.numPresyns
             if s.cell.__class__ == pyNN.hardware.spikey.IF_facets_hardware1:
                 driverIndex = targetSynapseBlockOffset + \
@@ -467,7 +475,7 @@ class Projection(common.Projection, WDManager):
         return value_list
 
     def getDrvioutFactorsRange(self, syntype):
-        return [default.currentMin / default.drviout_base[syntype], default.currentMax / default.drviout_base[syntype]]
+        return [old_div(default.currentMin, default.drviout_base[syntype]), old_div(default.currentMax, default.drviout_base[syntype])]
 
     def setDrvioutFactors(self, value_list):
         """
@@ -491,7 +499,7 @@ class Projection(common.Projection, WDManager):
             t = x[1]
             targetHardwareNeuron = pyNN.hardware.spikey.hardware.hwa.hardwareIndex(
                 t)
-            targetHardwareBlock = targetHardwareNeuron / default.neuronsPerBlock
+            targetHardwareBlock = old_div(targetHardwareNeuron, default.neuronsPerBlock)
             targetSynapseBlockOffset = targetHardwareBlock * default.numPresyns
             if s.cell.__class__ == pyNN.hardware.spikey.IF_facets_hardware1:
                 driverIndex = targetSynapseBlockOffset + \
@@ -511,11 +519,11 @@ class Projection(common.Projection, WDManager):
 
     def _dump_connections(self):
         """For debugging."""
-        print "Connections for Projection %s, connected with %s" % (self.label or '(un-labelled)',
-                                                                    self._method)
-        print "\tsource\ttarget"
+        print("Connections for Projection %s, connected with %s" % (self.label or '(un-labelled)',
+                                                                    self._method))
+        print("\tsource\ttarget")
         for conn in zip(self._sources, self._targets):
-            print "\t%d\t%d" % conn
+            print("\t%d\t%d" % conn)
 
     def _get_connection_values(self, format, parameter_name, gather):
         assert format in (
@@ -571,7 +579,7 @@ class Projection(common.Projection, WDManager):
 
         fmt = "%s%s\t%s%s\t%s\t%s\n" % (self.pre.label, "%s", self.post.label,
                                         "%s", "%g", "%g")
-        for i in xrange(len(self)):
+        for i in range(len(self)):
             line = fmt % (self.pre.locate(self._sources[i]),
                           self.post.locate(self._targets[i]),
                           self._weights[i],
@@ -600,7 +608,7 @@ class Projection(common.Projection, WDManager):
         """
         # it is arguable whether functions operating on the set of weights
         # should be put here or in an external module.
-        bins = numpy.arange(min, max, (max - min) / nbins)
+        bins = numpy.arange(min, max, old_div((max - min), nbins))
         # returns n, bins
         return numpy.histogram(self.getWeights(format='list', gather=True), bins)
 
@@ -635,7 +643,7 @@ class AllToAllConnector(connectors.AllToAllConnector, WDManager):
             projection._delays += delays
             #projection._target_ports += get_target_ports(pre, target_list)
 
-            for i in xrange(N):
+            for i in range(N):
                 pyNN.hardware.spikey.connect(source=pre, target=target_list[i], weight=weights[i], delay=delays[
                                              i], synapse_type=projection.synapse_type, synapse_dynamics=projection.synapse_dynamics)
 
@@ -665,7 +673,7 @@ class OneToOneConnector(connectors.OneToOneConnector, WDManager):
             projection._weights = weights
             projection._delays = delays
 
-            for i in xrange(N):
+            for i in range(N):
                 pyNN.hardware.spikey.connect(source=projection._sources[i], target=projection._targets[i], weight=weights[
                                              i], delay=delays[i], synapse_type=projection.synapse_type, synapse_dynamics=projection.synapse_dynamics)
             return N
@@ -710,7 +718,7 @@ class FixedProbabilityConnector(connectors.FixedProbabilityConnector, WDManager)
             projection._weights += weights
             projection._delays += delays
 
-            for i in xrange(N):
+            for i in range(N):
                 pyNN.hardware.spikey.connect(source=pre, target=target_list[i], weight=weights[i], delay=delays[
                                              i], synapse_type=projection.synapse_type, synapse_dynamics=projection.synapse_dynamics)
 
@@ -775,7 +783,7 @@ class DistanceDependentProbabilityConnector(connectors.DistanceDependentProbabil
             projection._weights += weights
             projection._delays += delays
 
-            for i in xrange(N):
+            for i in range(N):
                 pyNN.hardware.spikey.connect(source=pre, target=target_list[i], weight=weights[i], delay=delays[
                                              i], synapse_type=projection.synapse_type, synapse_dynamics=projection.synapse_dynamics)
         return len(projection._sources)
@@ -795,7 +803,7 @@ class FixedNumberPostConnector(connectors.FixedNumberPostConnector, WDManager):
             rng = numpy.random
         for pre in projection.pre.cell.flat:
             if hasattr(self, 'rand_distr'):
-                n = self.rand_distr.next()
+                n = next(self.rand_distr)
             else:
                 n = self.n
             # if self connections are not allowed, check whether pre and post
@@ -816,7 +824,7 @@ class FixedNumberPostConnector(connectors.FixedNumberPostConnector, WDManager):
             else:
                 delays = [float(delay)] * N
 
-            for i in xrange(N):
+            for i in range(N):
                 pyNN.hardware.spikey.connect(source=pre, target=target_list[i], weight=weights[i], delay=delays[
                                              i], synapse_type=projection.synapse_type, synapse_dynamics=projection.synapse_dynamics)
 
@@ -842,7 +850,7 @@ class FixedNumberPreConnector(connectors.FixedNumberPreConnector, WDManager):
             rng = numpy.random
         for post in projection.post.cell.flat:
             if hasattr(self, 'rand_distr'):
-                n = self.rand_distr.next()
+                n = next(self.rand_distr)
             else:
                 n = self.n
             # if self connections are not allowed, check whether pre and post
@@ -863,7 +871,7 @@ class FixedNumberPreConnector(connectors.FixedNumberPreConnector, WDManager):
             else:
                 delays = [float(delay)] * N
 
-            for i in xrange(N):
+            for i in range(N):
                 pyNN.hardware.spikey.connect(source=source_list[i], target=post, weight=weights[i], delay=delays[
                                              i], synapse_type=projection.synapse_type, synapse_dynamics=projection.synapse_dynamics)
 

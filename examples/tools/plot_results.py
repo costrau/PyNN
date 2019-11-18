@@ -40,22 +40,22 @@ for simulator in 'PCSIM', 'NEST', 'NEURON', 'Brian':
 
 
 
-sizes = pylab.array([vm.size for vm in vm_data.values()])
+sizes = pylab.array([vm.size for vm in list(vm_data.values())])
 if not all(sizes == sizes[0]):
 #if not pcsim_data.shape == nest_data.shape == neuron_data.shape:
-    errmsg = "Data has different lengths. " + ", ".join(["%s: %s" % (simulator, vm.shape) for simulator, vm in vm_data.items()])
+    errmsg = "Data has different lengths. " + ", ".join(["%s: %s" % (simulator, vm.shape) for simulator, vm in list(vm_data.items())])
     errmsg += "Trimming to the length of the shortest."
     warnings.warn(errmsg)
-    new_length = min([vm.shape[0] for vm in vm_data.values()])
+    new_length = min([vm.shape[0] for vm in list(vm_data.values())])
     for simulator in vm_data:
         vm_data[simulator] = vm_data[simulator][:new_length,:]
     for simulator in gsyn_data:
         gsyn_data[simulator] = gsyn_data[simulator][:new_length,:]
     
 
-t = dt*pylab.arange(vm_data[vm_data.keys()[0]].shape[0])
+t = dt*pylab.arange(vm_data[list(vm_data.keys())[0]].shape[0])
 
-for label, vm in vm_data.items():
+for label, vm in list(vm_data.items()):
     pylab.plot(t, vm[:,0], label=label)
 pylab.legend()
 pylab.title(example)
@@ -66,7 +66,7 @@ pylab.savefig("Results/%s.png" % example)
 
 if gsyn_data:
     pylab.figure(2)
-    for label, gsyn in gsyn_data.items():
+    for label, gsyn in list(gsyn_data.items()):
         pylab.plot(t, gsyn[:,0], label="%s (exc)" % label)
         pylab.plot(t, gsyn[:,1], label="%s (inh)" % label)
         pylab.legend()

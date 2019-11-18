@@ -1,6 +1,8 @@
 """ tests if calibrated membrane time constants are set correctly"""
+from __future__ import print_function
 
 # TODO: tidy up preamble
+from builtins import range
 import numpy as np
 import matplotlib.pyplot as plt
 import pyNN.hardware.spikey as p
@@ -14,7 +16,7 @@ import os
 from copy import deepcopy
 
 ######################### neurons and tau_mem values to be measured ######
-neuronIDs = range(192, 195)
+neuronIDs = list(range(192, 195))
 
 # tau_mem value (in ms) at which to compare calibrated and uncalibrated
 # tau_mem of individual neurons
@@ -86,7 +88,7 @@ def measure_tau_mem(neuronNr, tau_mem_target, calibTauMem=True):
         trials = 0
         crossedTargetRate = False
         while params['v_rest'] < maxVRest:
-            print 'now at trial', trials, '/ v_rest =', params['v_rest']
+            print('now at trial', trials, '/ v_rest =', params['v_rest'])
             p.run(duration)
             trace = p.membraneOutput
             dig_spikes = neuron.getSpikes()[:, 1]
@@ -98,7 +100,7 @@ def measure_tau_mem(neuronNr, tau_mem_target, calibTauMem=True):
             if len(dig_spikes) < targetSpikes:
                 params['v_rest'] = params['v_rest'] + vRestStep
                 neuron.set(params)
-                print 'Neuron spiked with too low rate, trying again with parameters', params
+                print('Neuron spiked with too low rate, trying again with parameters', params)
                 trials += 1
             else:  # proper spiking
                 crossedTargetRate = True
@@ -193,12 +195,12 @@ def compare_neurons(neuronIDs, tau_mem, filename='calib_vs_uncalib.txt', worksta
             if len(tau_calib) == 0 or len(tau_uncalib) == 0:
                 faultyNeurons.append(neuron)
 
-            print '###################### result for neuron {0} #################'.format(neuron)
-            print 'set membrane time constant is {0} ms'.format(tau_mem)
-            print 'mean tau_mem after {0} measurements:'.format(trialsAverage)
-            print 'calibrated: {0} +/- {1} ms'.format(np.mean(tau_calib), np.std(tau_calib))
-            print 'uncalibrated: {0} +/- {1} ms'.format(np.mean(tau_uncalib), np.std(tau_uncalib))
-            print '##############################################################'
+            print('###################### result for neuron {0} #################'.format(neuron))
+            print('set membrane time constant is {0} ms'.format(tau_mem))
+            print('mean tau_mem after {0} measurements:'.format(trialsAverage))
+            print('calibrated: {0} +/- {1} ms'.format(np.mean(tau_calib), np.std(tau_calib)))
+            print('uncalibrated: {0} +/- {1} ms'.format(np.mean(tau_uncalib), np.std(tau_uncalib)))
+            print('##############################################################')
 
         tau_all_calib = np.array(tau_all_calib)
         tau_all_uncalib = np.array(tau_all_uncalib)
@@ -215,7 +217,7 @@ def compare_neurons(neuronIDs, tau_mem, filename='calib_vs_uncalib.txt', worksta
 
     # plot recorded data
     if plotOnly and not os.path.isfile(filename):
-        print 'cannot plot data, no file {0} exists'.format(filename)
+        print('cannot plot data, no file {0} exists'.format(filename))
         return
     data = open(filename)
     tau_mem = pickle.load(data)
@@ -235,7 +237,7 @@ def compare_neurons(neuronIDs, tau_mem, filename='calib_vs_uncalib.txt', worksta
     if fig == None:
         fig = plt.figure()
     if len(toPlot_calib) == 0:
-        print 'No data for neurons {0} in file {1}'.format(neuronIDs, filename)
+        print('No data for neurons {0} in file {1}'.format(neuronIDs, filename))
         return fig
     ax = fig.add_subplot(111)
     ax.errorbar(toPlot_calib[:, 0], toPlot_calib[:, 1],

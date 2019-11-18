@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 from distutils.core import setup
 from distutils.command.build import build as _build
 import os
@@ -11,7 +12,7 @@ class build(_build):
         _build.run(self)
         nrnivmodl = self.find_nrnivmodl()
         if nrnivmodl:
-            print "nrnivmodl found at", nrnivmodl
+            print("nrnivmodl found at", nrnivmodl)
             import subprocess
             p = subprocess.Popen(nrnivmodl, shell=True, stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -20,12 +21,12 @@ class build(_build):
             # test if nrnivmodl was successful
             if result != 0:
                 errorMsg = p.stderr.readlines()
-                print "Unable to compile NEURON extensions. Error message was:"
-                print errorMsg
+                print("Unable to compile NEURON extensions. Error message was:")
+                print(errorMsg)
             else:
-                print "Successfully compiled NEURON extensions."
+                print("Successfully compiled NEURON extensions.")
         else:
-            print "Unable to find nrnivmodl. It will not be possible to use the pyNN.neuron module."
+            print("Unable to find nrnivmodl. It will not be possible to use the pyNN.neuron module.")
         
     def find_nrnivmodl(self):
         """Try to find the nrnivmodl executable."""

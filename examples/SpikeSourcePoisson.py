@@ -6,6 +6,7 @@ September 2006
 
 $Id$
 """
+from __future__ import print_function
 
 from pyNN.utility import get_script_args
 
@@ -20,12 +21,12 @@ poissonsource.record()
 
 run(300.0)
   
-print "Mean spike count:", poissonsource.meanSpikeCount()
-print "First few spikes:"
+print("Mean spike count:", poissonsource.meanSpikeCount())
+print("First few spikes:")
 all_spikes = poissonsource.getSpikes()
 first_id = all_spikes[0,0]
 for i, cell in enumerate(poissonsource):
-    print "cell #%d: %s" % (cell, all_spikes[all_spikes[:,0]==i][:,1][:5])
+    print("cell #%d: %s" % (cell, all_spikes[all_spikes[:,0]==i][:,1][:5]))
   
 poissonsource.printSpikes("Results/SpikeSourcePoisson_%s.ras" % simulator_name)
   

@@ -7,11 +7,16 @@ Also see:
   http://www.theether.org/pssh/
   http://docs.fabfile.org/
 """
+from __future__ import print_function
 
+from builtins import next
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 from subprocess import Popen, PIPE, STDOUT
 import sys
 import os
-from StringIO import StringIO
+from io import StringIO
 from itertools import cycle
 import tempfile
 from time import sleep
@@ -35,7 +40,7 @@ class Job(Popen):
                                sys.executable,
                                os.path.abspath(self.script),
                                " ".join(self.args))
-        print cmd        
+        print(cmd)        
         self._output = tempfile.TemporaryFile()
         if quiet:
             stdout = self._output
@@ -77,7 +82,7 @@ class JobManager(object):
         """
         sleep(self.delay)
         job = Job(script, *args)
-        node = self._node.next()
+        node = next(self._node)
         job.run(node, quiet=self.quiet)
         self.job_list.append(job)
         
@@ -96,7 +101,7 @@ def test():
         jm.run("test.py")
     jm.wait()
     for job in jm:
-        print job.stdout.read()
+        print(job.stdout.read())
 
 if __name__ == "__main__":
     test()

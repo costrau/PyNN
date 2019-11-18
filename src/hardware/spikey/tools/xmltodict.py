@@ -4,6 +4,8 @@
 # Daniel Bruederle, KIP Heidelberg
 
 
+from past.builtins import basestring
+from builtins import object
 import re
 import xml.sax.handler
 
@@ -35,9 +37,9 @@ def xml2obj(src):
                 return [self][key]
 
         def __contains__(self, name):
-            return self._attrs.has_key(name)
+            return name in self._attrs
 
-        def __nonzero__(self):
+        def __bool__(self):
             return bool(self._attrs or self.data)
 
         def __getattr__(self, name):
@@ -79,7 +81,7 @@ def xml2obj(src):
             self.current = DataNode()
             self.text_parts = []
             # xml attributes --> python attributes
-            for k, v in attrs.items():
+            for k, v in list(attrs.items()):
                 self.current._add_xml_attr(_name_mangle(k), v)
 
         def endElement(self, name):
@@ -102,13 +104,13 @@ def xml2obj(src):
         xml.sax.parseString(src, builder)
     else:
         xml.sax.parse(src, builder)
-    return builder.root._attrs.values()[0]
+    return list(builder.root._attrs.values())[0]
 
 
 def stringifyDict(d):
     '''Replaces all xmltodict2.DataNode objects in d by unicode strings.'''
     d2 = d._attrs
-    for k in d2.keys():
+    for k in list(d2.keys()):
         if type(d2[k]) == type(d):
             d2[k] = stringifyDict(d2[k])
     return d2

@@ -1,3 +1,5 @@
+from builtins import str
+from builtins import range
 def test_noSpikesBug():
     import numpy as np
     import pyNN.hardware.spikey as pynn

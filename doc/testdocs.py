@@ -2,6 +2,7 @@
 """
 Script to run doctests.
 """
+from __future__ import print_function
 
 import doctest
 import sys
@@ -31,7 +32,7 @@ class MyOutputChecker(doctest.OutputChecker):
                 return True
             else:  
                 try:
-                    long(want) and long(got) # where the output is an id (PCSIM uses longs, the others use ints, but long will work for them).
+                    int(want) and int(got) # where the output is an id (PCSIM uses longs, the others use ints, but long will work for them).
                     return True
                 except ValueError:
                     try:
@@ -62,7 +63,7 @@ def print_script(filename, simulator):
     parser = doctest.DocTestParser()
     s = open(filename).read()
     script = "".join([ex.source for ex in parser.get_examples(s) if "+SKIP" not in ex.source])
-    print "from pyNN.%s import *\nsetup(max_delay=10.0, debug=True)\n" % simulator + script
+    print("from pyNN.%s import *\nsetup(max_delay=10.0, debug=True)\n" % simulator + script)
 
 # ==============================================================================
 if __name__ == "__main__":

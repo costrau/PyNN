@@ -7,7 +7,9 @@ Classes:
 
 $Id$
 """
+from __future__ import print_function
 
+from builtins import object
 import numpy
 import pypcsim
 from pyNN.pcsim import simulator
@@ -56,7 +58,7 @@ class StepCurrentSource(CurrentSource):
         t = numpy.array(times)
         try:
             durations[1:-1] = t[1:] - t[0:-1]
-        except ValueError, e:
+        except ValueError as e:
             raise ValueError("%s. durations[1:].shape=%s, t[1:].shape=%s, t[0:-1].shape=%s" % (e, durations[1:].shape, t[1:].shape, t[0:-1].shape))
         levels[1:] = amplitudes[:]
         durations[-1] = 1e12
@@ -64,7 +66,7 @@ class StepCurrentSource(CurrentSource):
         durations *= 1e-3 # s --> ms
         self.input_node = simulator.net.create(pypcsim.AnalogLevelBasedInputNeuron(levels, durations))
         self.connections = []
-        print "created stepcurrentsource"
+        print("created stepcurrentsource")
         
 class DCSource(StepCurrentSource):
     """Source producing a single pulse of current of constant amplitude."""

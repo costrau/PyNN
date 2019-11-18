@@ -14,6 +14,7 @@ May 2006
 $Id$
 """
 
+from builtins import range
 from pyNN.utility import get_script_args
 
 simulator_name = get_script_args(1)[0]  

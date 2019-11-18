@@ -3,6 +3,9 @@ Unit tests for the common, cells, synapses, connectors modules
 $Id$
 """
 
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 import sys
 import unittest
 import numpy
@@ -19,7 +22,7 @@ class ExceptionsTest(unittest.TestCase):
     def test_NonExistentParameterError_withStandardModel(self):
         try:
             raise common.NonExistentParameterError("foo", cells.IF_cond_alpha)
-        except common.NonExistentParameterError, err:
+        except common.NonExistentParameterError as err:
             self.assertEqual(err.model_name, 'IF_cond_alpha')
             self.assertEqual(err.parameter_name, 'foo')
             self.assertEqual(err.valid_parameter_names,
@@ -31,7 +34,7 @@ class ExceptionsTest(unittest.TestCase):
     def test_NonExistentParameterError_withStringModel(self):
         try:
             raise common.NonExistentParameterError("foo", 'iaf_neuron')
-        except common.NonExistentParameterError, err:
+        except common.NonExistentParameterError as err:
             self.assertEqual(err.model_name, 'iaf_neuron')
             self.assertEqual(err.parameter_name, 'foo')
             self.assertEqual(err.valid_parameter_names, ['unknown'])

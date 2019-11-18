@@ -6,6 +6,7 @@ December 2007
 
 $Id$
 """
+from __future__ import print_function
 
 from pyNN.utility import get_script_args
 
@@ -17,7 +18,7 @@ setup(timestep=0.01,min_delay=0.1,max_delay=4.0,debug=True)
 
 ifcell = create(EIF_cond_alpha_isfa_ista,
                 {'i_offset': 1.0, 'tau_refrac': 2.0, 'v_spike': -40})
-print ifcell.get_parameters()
+print(ifcell.get_parameters())
     
 record_v(ifcell,"Results/EIF_cond_alpha_isfa_ista_%s.v" % simulator_name)
 run(200.0)

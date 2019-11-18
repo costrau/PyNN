@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+from __future__ import division
+from __future__ import print_function
+from past.utils import old_div
 import pyNN.hardware.spikey as pynn
 import numpy as np
 
@@ -35,8 +38,8 @@ def test_change_input():
             pynn.setup()
             build(rate)
             pynn.run(runtime)
-            rateOutList.append(len(neurons.getSpikes()) /
-                               runtime * 1e3 / numNeurons)
+            rateOutList.append(old_div(old_div(len(neurons.getSpikes()),
+                               runtime) * 1e3, numNeurons))
             pynn.end()
         return rateOutList
 
@@ -49,8 +52,8 @@ def test_change_input():
             poissonParams = {'start': 0, 'duration': runtime, 'rate': rate}
             stim.set(poissonParams)
             pynn.run(runtime)
-            rateOutList.append(len(neurons.getSpikes()) /
-                               runtime * 1e3 / numNeurons)
+            rateOutList.append(old_div(old_div(len(neurons.getSpikes()),
+                               runtime) * 1e3, numNeurons))
         pynn.end()
         return rateOutList
 
@@ -65,16 +68,16 @@ def test_change_input():
 
     polyClosed = np.polyfit(rateRange, rateListClosed, 1)
     polyLoop = np.polyfit(rateRange, rateListLoop, 1)
-    print 'min rate closed / loop', np.min(rateListClosed), np.min(rateListLoop)
-    print 'max rate closed / loop', np.max(rateListClosed), np.max(rateListLoop)
+    print('min rate closed / loop', np.min(rateListClosed), np.min(rateListLoop))
+    print('max rate closed / loop', np.max(rateListClosed), np.max(rateListLoop))
 
-    print 'polynom closed', polyClosed
-    print 'polynom loop', polyLoop
-    relErrSlope = abs(polyClosed[0] / polyLoop[0] - 1.0) * 100.0
-    relErrOffset = abs(polyClosed[1] / polyLoop[1] - 1.0) * 100.0
+    print('polynom closed', polyClosed)
+    print('polynom loop', polyLoop)
+    relErrSlope = abs(old_div(polyClosed[0], polyLoop[0]) - 1.0) * 100.0
+    relErrOffset = abs(old_div(polyClosed[1], polyLoop[1]) - 1.0) * 100.0
 
-    print 'error slope', relErrSlope
-    print 'error offset', relErrOffset
+    print('error slope', relErrSlope)
+    print('error offset', relErrOffset)
     assert relErrSlope < maxRelErr
     assert relErrOffset < maxRelErr
 

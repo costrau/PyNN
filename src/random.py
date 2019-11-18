@@ -14,7 +14,10 @@ Classes:
 
 $Id:random.py 188 2008-01-29 10:03:59Z apdavison $
 """
+from __future__ import division
 
+from past.utils import old_div
+#from builtins import object
 import sys
 import logging
 import numpy.random
@@ -27,7 +30,7 @@ import time
 
 logger = logging.getLogger("PyNN")
  
-class AbstractRNG:
+class AbstractRNG(object):
     """Abstract class for wrapping random number generators. The idea is to be
     able to use either simulator-native rngs, which may be more efficient, or a
     standard python rng, e.g. a numpy.random.RandomState object, which would
@@ -36,7 +39,7 @@ class AbstractRNG:
     
     def __init__(self, seed=None):
         if seed:
-            assert isinstance(seed, int), "`seed` must be an int (< %d), not a %s" % (sys.maxint, type(seed).__name__)
+            assert isinstance(seed, int), "`seed` must be an int (< %d), not a %s" % (sys.maxsize, type(seed).__name__)
         self.seed = seed
         # define some aliases
         self.random = self.next
@@ -76,12 +79,12 @@ class WrappedRNG(AbstractRNG):
                 # number of processors (m), we only need generate n/m+1 per node
                 # (assuming round-robin distribution of cells between processors)
                 if mask_local is None:
-                    n = n/self.num_processes + 1
+                    n = old_div(n,self.num_processes) + 1
                 else:
                     n = mask_local.sum()
             rarr = self._next(distribution, n, parameters)
         else:
-            raise ValueError, "The sample number must be positive"
+            raise ValueError("The sample number must be positive")
         if self.parallel_safe and self.num_processes > 1:
             if mask_local is False:
                 pass
@@ -98,13 +101,6 @@ class WrappedRNG(AbstractRNG):
             return rarr[0]
         else:
             return rarr
-    
-    def __getattr__(self, name):
-        """
-        This is to give the PyNN RNGs the same methods as the wrapped RNGs (
-        numpy.random.RandomState or the GSL RNGs.
-        """
-        return getattr(self.rng, name)
     
     
 class NumpyRNG(WrappedRNG):
@@ -124,6 +120,13 @@ class NumpyRNG(WrappedRNG):
     def describe(self):
         return "NumpyRNG() with seed %s for MPI rank %d (MPI processes %d). %s parallel safe." % (
             self.seed, self.rank, self.num_processes, self.parallel_safe and "Is" or "Not")
+
+    def __getattr__(self, name):
+        """
+        This is to give the PyNN RNGs the same methods as the wrapped RNGs (
+        numpy.random.RandomState or the GSL RNGs.
+        """
+        return getattr(self.rng, name)
 
 
 class GSLRNG(WrappedRNG):
@@ -161,7 +164,7 @@ class NativeRNG(AbstractRNG):
         return "AbstractRNG(seed=%s)" % self.seed
 
 
-class RandomDistribution:
+class RandomDistribution(object):
     """
     Class which defines a next(n) method which returns an array of n random
     numbers from a given distribution.

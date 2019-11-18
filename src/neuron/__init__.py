@@ -4,6 +4,8 @@ nrnpython implementation of the PyNN API.
  
 $Id:__init__.py 188 2008-01-29 10:03:59Z apdavison $
 """
+from builtins import zip
+from builtins import range
 __version__ = "$Rev: 191 $"
 
 from pyNN.random import *
@@ -29,7 +31,7 @@ logger = logging.getLogger("PyNN")
 
 def list_standard_models():
     """Return a list of all the StandardCellType classes available for this simulator."""
-    return [obj for obj in globals().values() if isinstance(obj, type) and issubclass(obj, common.StandardCellType)]
+    return [obj for obj in list(globals().values()) if isinstance(obj, type) and issubclass(obj, common.StandardCellType)]
 
 # ==============================================================================
 #   Functions for simulation set-up and control
@@ -55,7 +57,7 @@ def setup(timestep=0.1, min_delay=0.1, max_delay=10.0, **extra_params):
     simulator.state.dt = timestep
     simulator.state.min_delay = min_delay
     simulator.state.max_delay = max_delay
-    if extra_params.has_key('use_cvode'):
+    if 'use_cvode' in extra_params:
         simulator.state.cvode.active(int(extra_params['use_cvode']))
     return rank()
 

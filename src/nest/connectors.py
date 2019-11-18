@@ -3,6 +3,7 @@ Connection method classes for nest
 
 $Id$
 """
+from builtins import next
 from pyNN import random, common
 
 from pyNN.connectors import AllToAllConnector, \
@@ -27,7 +28,7 @@ class FixedNumberPreConnector(FixedNumberPreConnector):
         for target in projection.post.local_cells.flat:
             # pick n neurons at random
             if hasattr(self, 'rand_distr'):
-                n = self.rand_distr.next()
+                n = next(self.rand_distr)
             else:
                 n = self.n
 

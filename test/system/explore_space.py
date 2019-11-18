@@ -7,6 +7,7 @@ For a full description of usage, run:
 python explore_space.py --help
 
 """
+from __future__ import print_function
 
 import os
 import tempfile
@@ -75,8 +76,8 @@ ds = datastore.ShelveDataStore(root_dir=parameter_space.results_dir,
 for job in job_manager:
     ##print job.read_output()
     test_module.parameters = test_module.load_parameters(job.args[0])
-    print ds.retrieve(test_module, 'distances')
-    print ds.retrieve(test_module, 'vm_diff')
+    print(ds.retrieve(test_module, 'distances'))
+    print(ds.retrieve(test_module, 'vm_diff'))
     ds.store(test_module, 'output', job.output)
 
 # clean up

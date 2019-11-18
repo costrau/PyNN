@@ -1,6 +1,12 @@
+from __future__ import division
 # This file containts information, classes and routines for accessing the
 # Spikey neuromorphic system.
 
+from builtins import zip
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import pylogging as pylog
 myLogger = pylog.get("PyN.cfg")
 
@@ -27,7 +33,7 @@ numExternalInputs = numPresyns * numBlocks
 numNeurons = neuronsPerBlock * numBlocks
 numVout = default.numVout
 
-if os.environ.has_key('PYNN_HW_PATH'):
+if 'PYNN_HW_PATH' in os.environ:
     basePath = os.path.join(os.environ['PYNN_HW_PATH'], 'config')
 else:
     raise EnvironmentError(
@@ -37,7 +43,7 @@ sys.path.append(os.path.join(basePath, "calibration"))
 import calibSTPglobals
 
 
-class HWAccess:
+class HWAccess(object):
     '''This class has to be instanciated once in order to access the Spikey neuromorphic system.'''
 
     def __init__(self, debug=False, defaultValue=0.0, **extra_params):
@@ -51,7 +57,7 @@ class HWAccess:
         self.sp = None
 
         self.dryRun = False
-        if extra_params.has_key('dryRun') and extra_params['dryRun']:
+        if 'dryRun' in extra_params and extra_params['dryRun']:
             self.dryRun = True
         self.debug = debug
 
@@ -134,7 +140,7 @@ class HWAccess:
         # zero outamp biases for ADC calibration
         Ibnoutampba = default.Ibnoutampba
         Ibnoutampbb = default.Ibnoutampbb
-        if extra_params.has_key('outAmpZero'):
+        if 'outAmpZero' in extra_params:
             if extra_params['outAmpZero'] == True:
                 self.outamp = numpy.zeros_like(default.outamp)
         myLogger.debug('outamp biases: ' + str(Ibnoutampba) +
@@ -224,7 +230,7 @@ class HWAccess:
         voutbiasVec = pyhalc.vectorVectorDouble()
         for i in range(2):
             voutbiasVec.append(pyhalc.vectorDouble())
-            for j in xrange(numVout):
+            for j in range(numVout):
                 voutbiasVec[i].append(self.voutbiases[i, j])
         # tranfer the prepared container to the SpikeyConfig object
         self.cfg.setVoltageBiases(voutbiasVec)
@@ -366,7 +372,7 @@ class HWAccess:
 
         if not self.haveHardware:
             # create spikey model
-            if os.environ.has_key('SPIKEYHALPATH'):
+            if 'SPIKEYHALPATH' in os.environ:
                 calibfile = os.environ['SPIKEYHALPATH'] + '/spikeycalib.xml'
                 myLogger.debug(
                     'Creating Spikey object (with clock period T = ' + str(spikeyClk) + 'ns)')
@@ -466,12 +472,12 @@ class HWAccess:
                     calibList = pickle.load(pickleFile)
                     pickleFile.close()
 
-                    if (len(calibList['polyFitOutputPins'].keys()) != 4 and self.chipVersion() == 4) \
-                            or (len(calibList['polyFitOutputPins'].keys()) != 8 and self.chipVersion() != 4):
+                    if (len(list(calibList['polyFitOutputPins'].keys())) != 4 and self.chipVersion() == 4) \
+                            or (len(list(calibList['polyFitOutputPins'].keys())) != 8 and self.chipVersion() != 4):
                         raise Exception(
                             'ERROR: output pin calibration file invalid!')
 
-                    for key in calibList['polyFitOutputPins'].keys():
+                    for key in list(calibList['polyFitOutputPins'].keys()):
                         keyInt = int(''.join(x for x in key if x.isdigit()))
                         self.outputPinsFit[keyInt] = calibList[
                             'polyFitOutputPins'][key]
@@ -489,12 +495,12 @@ class HWAccess:
                     calibList = pickle.load(pickleFile)
                     pickleFile.close()
 
-                    if (len(calibList['polyFitNeuronMems'].keys()) != 192 and self.chipVersion() == 4) \
-                            or (len(calibList['polyFitNeuronMems'].keys()) != 384 and self.chipVersion() != 4):
+                    if (len(list(calibList['polyFitNeuronMems'].keys())) != 192 and self.chipVersion() == 4) \
+                            or (len(list(calibList['polyFitNeuronMems'].keys())) != 384 and self.chipVersion() != 4):
                         raise Exception(
                             'ERROR: neuron membrane calibration file invalid!')
 
-                    for key in calibList['polyFitNeuronMems'].keys():
+                    for key in list(calibList['polyFitNeuronMems'].keys()):
                         keyInt = int(''.join(x for x in key if x.isdigit()))
                         self.neuronMemsFit[keyInt] = calibList[
                             'polyFitNeuronMems'][key]
@@ -598,10 +604,10 @@ class HWAccess:
             if calibsNotLoaded != '':
                 calibNotLoaded(calibsNotLoaded)
 
-        availableNeuronRange = range(default.numNeurons)
+        availableNeuronRange = list(range(default.numNeurons))
         if self.chipVersion() == 4:
-            availableNeuronRange = range(
-                default.neuronsPerBlock, default.numNeurons) + range(default.neuronsPerBlock)
+            availableNeuronRange = list(range(
+                default.neuronsPerBlock, default.numNeurons)) + list(range(default.neuronsPerBlock))
         if len(self.neuronPermutation) > 0:
             exceptionString = 'ERROR: Neuron permutation list must include all hardware neuron indices: ' + \
                 str(availableNeuronRange)
@@ -708,7 +714,7 @@ class HWAccess:
             hardwareNeuron = self.hardwareIndex(n.index)
             myLogger.trace('bio neuron ID ' + str(n.index) +
                            ' is assigned to hardware neuron ID ' + str(hardwareNeuron))
-            hardwareBlock = hardwareNeuron / neuronsPerBlock
+            hardwareBlock = old_div(hardwareNeuron, neuronsPerBlock)
             synapseBlockOffset = hardwareBlock * numPresyns
 
             # create an array for the hardware weights
@@ -717,7 +723,7 @@ class HWAccess:
 
             if updateParam or updateRowConf or updateWeight:
                 # run through the neuron's inputs from within the network
-                for c in n.incomingNeuronWeights.keys():
+                for c in list(n.incomingNeuronWeights.keys()):
                     # determine the source's hardware coordinates
                     source = self.hardwareIndex(int(c))
                     # the synapse driver is determined by the block of the
@@ -725,7 +731,7 @@ class HWAccess:
                     driver = synapseBlockOffset + (source % neuronsPerBlock)
                     # swap even and uneven feedback lines for feedback to
                     # adjacent block
-                    if (source / neuronsPerBlock != hardwareBlock):
+                    if (old_div(source, neuronsPerBlock) != hardwareBlock):
                         driver = driver + 1 - 2 * (driver % 2)
                     # determine the connection weight and type
                     synapse = n.incomingNeuronWeights[c]
@@ -754,7 +760,7 @@ class HWAccess:
 
                 # run through the neuron's inputs from outside the network
                 # for c in range(n.externalInputs.size):
-                for source in n.externalWeights.keys():
+                for source in list(n.externalWeights.keys()):
                     # determine the source's hardware coordinates
                     #source = int(c)
                     # currently the number of possible external input sources
@@ -811,13 +817,13 @@ class HWAccess:
                 calib_params = self.iLeakPoly[hardwareNeuron]
                 if self.calibTauMem and (calib_params != 0).any():
                     # capacitance is 0.2nF
-                    tauMem = 0.2 * 1e3 / n.parameters['g_leak']
+                    tauMem = old_div(0.2 * 1e3, n.parameters['g_leak'])
                     iLeak_inv_calib = numpy.polyval(calib_params, x=tauMem)
                     iLeak_calib = 1. / iLeak_inv_calib
                     # fix to valid currents
                     iLeak_calib = numpy.max([0, numpy.min([2.5, iLeak_calib])])
-                    self.iLeakCalib[hardwareNeuron] = iLeak_calib / \
-                        (n.parameters['g_leak'] * self.iLeak_base)
+                    self.iLeakCalib[hardwareNeuron] = old_div(iLeak_calib, \
+                        (n.parameters['g_leak'] * self.iLeak_base))
                     min_iLeak = self.iLeakRange[hardwareNeuron][0]
                     max_iLeak = self.iLeakRange[hardwareNeuron][1]
                     # warn if desired membrane time constant is not in range of
@@ -836,7 +842,7 @@ class HWAccess:
                 calib_params = self.icbCalib[hardwareNeuron]
                 if self.calibIcb and (calib_params != 0).any():
                     icb = numpy.log(
-                        n.parameters['tau_refrac'] / calib_params[0]) * (-1. / calib_params[1])
+                        old_div(n.parameters['tau_refrac'], calib_params[0])) * (old_div(-1., calib_params[1]))
                     min_icb = min(self.icbRange[hardwareNeuron])
                     max_icb = max(self.icbRange[hardwareNeuron])
                     # warn if desired refractory period is not in range of
@@ -865,7 +871,7 @@ class HWAccess:
                     bio_highest_voltage = -55.
                     deltaVbio = bio_highest_voltage - bio_lowest_voltage
                     deltaVhw = self.voutThresh - self.lowerBound
-                    factor = deltaVhw / deltaVbio
+                    factor = old_div(deltaVhw, deltaVbio)
                     # save the conversion factors for later re-translation of
                     # hardware to bio voltage
                     self.hardwareToBioFactor = 1. / factor
@@ -892,22 +898,22 @@ class HWAccess:
                             n.parameters['v_thresh'] - bio_lowest_voltage) * factor + self.lowerBound
 
                     # let special lowlevel voltages override biological values
-                    if n.parameters['lowlevel_parameters'].has_key('e_rev_I'):
+                    if 'e_rev_I' in n.parameters['lowlevel_parameters']:
                         self.vouts[hardwareBlock, hardwareNeuron % 2 +
                                    0] = n.parameters['lowlevel_parameters'].get('e_rev_I')
-                    if n.parameters['lowlevel_parameters'].has_key('v_rest'):
+                    if 'v_rest' in n.parameters['lowlevel_parameters']:
                         self.vouts[hardwareBlock, hardwareNeuron % 2 +
                                    2] = n.parameters['lowlevel_parameters'].get('v_rest')
-                    if n.parameters['lowlevel_parameters'].has_key('v_reset'):
+                    if 'v_reset' in n.parameters['lowlevel_parameters']:
                         self.vouts[hardwareBlock, hardwareNeuron % 2 +
                                    4] = n.parameters['lowlevel_parameters'].get('v_reset')
-                    if n.parameters['lowlevel_parameters'].has_key('e_rev_E'):
+                    if 'e_rev_E' in n.parameters['lowlevel_parameters']:
                         self.vouts[hardwareBlock, hardwareNeuron % 2 +
                                    6] = n.parameters['lowlevel_parameters'].get('e_rev_E')
-                    if n.parameters['lowlevel_parameters'].has_key('v_thresh'):
+                    if 'v_thresh' in n.parameters['lowlevel_parameters']:
                         self.vouts[hardwareBlock, hardwareNeuron % 2 +
                                    16] = n.parameters['lowlevel_parameters'].get('v_thresh')
-                    if n.parameters['lowlevel_parameters'].has_key('permanentFiring') and n.parameters['lowlevel_parameters']['permanentFiring']:
+                    if 'permanentFiring' in n.parameters['lowlevel_parameters'] and n.parameters['lowlevel_parameters']['permanentFiring']:
                         myLogger.warn('Setting the firing threshold below the resting potential! (Hardware neuron ' + str(
                             hardwareNeuron) + ' on block ' + str(hardwareBlock) + ')')
                         buf = self.vouts[hardwareBlock, hardwareNeuron % 2 + 2]
@@ -946,7 +952,7 @@ class HWAccess:
             voutVec = pyhalc.vectorVectorDouble()
             for i in range(2):
                 voutVec.append(pyhalc.vectorDouble())
-                for j in xrange(numVout):
+                for j in range(numVout):
                     voutVec[i].append(self.vouts[i, j])
             # tranfer the prepared container to the SpikeyConfig object
             self.cfg.setVoltages(voutVec)
@@ -957,7 +963,7 @@ class HWAccess:
             voutbiasVec = pyhalc.vectorVectorDouble()
             for i in range(2):
                 voutbiasVec.append(pyhalc.vectorDouble())
-                for j in xrange(numVout):
+                for j in range(numVout):
                     voutbiasVec[i].append(self.voutbiases[i, j])
             # tranfer the prepared container to the SpikeyConfig object
             self.cfg.setVoltageBiases(voutbiasVec)
@@ -1097,7 +1103,7 @@ class HWAccess:
         # see __init__.py _hardwareParameters['speedup'] and
         # _hardwareParameters['spikeyClk']
         """From ms to Spikey clock cycles (default: 200MHz)."""
-        return timeInMs / 1e3 / 1e4 * 200e6
+        return old_div(old_div(timeInMs, 1e3), 1e4) * 200e6
 
     def setSTDPParamsCont(self, activate, expOffset, distance, distance_pre, rowmin, rowmax):
         """Set hardware parameters relevant for continuous STDP."""
@@ -1157,7 +1163,7 @@ class HWAccess:
         """Set the neuron refractory period in hardware values (icb_base)."""
         # fill class-internal containers with passed values
         self.icb_base = icb_base
-        for n in xrange(numNeurons):
+        for n in range(numNeurons):
             self.cfg.setIcb(n, icb_base)
 
     def _set_STP_globals(self, Vfac=None, Vstdf=None, Vdtc=None):
@@ -1222,7 +1228,7 @@ class HWAccess:
         if STP:
             status += neurotypes.STPTypes['enable']
 
-            if STP.has_key('U'):
+            if 'U' in STP:
                 U = STP['U']
             else:
                 raise Exception("STP active but no U provided.")
@@ -1276,7 +1282,7 @@ class HWAccess:
         '''
 
         hardwareNeuron = self.hardwareIndex(neuron)
-        pin = hardwareNeuron % 4 + int(hardwareNeuron / neuronsPerBlock) * 4
+        pin = hardwareNeuron % 4 + int(old_div(hardwareNeuron, neuronsPerBlock)) * 4
 
         # check if pin is already occupied
         if value and (not self.cfg.membraneMonitorEnabled(hardwareNeuron)) and self.membraneReadoutPinOccupied[pin]:
@@ -1429,7 +1435,7 @@ class HWAccess:
             frequencyPreExp = (
                 self.stdp['maxR'] - self.stdp['minR'] + 1) * self.autoSTDPFrequencyPreExp
             myLogger.info('STDP is enabled for row ' + str(self.stdp['minR']) + ' -> ' + str(self.stdp['maxR']) + ' and column ' + str(
-                self.stdp['minC']) + ' -> ' + str(self.stdp['maxC']) + ' with frequency ' + str(round(1 / frequency * 1000.0, 3)) + 'Hz')
+                self.stdp['minC']) + ' -> ' + str(self.stdp['maxC']) + ' with frequency ' + str(round(old_div(1, frequency) * 1000.0, 3)) + 'Hz')
 
             # TP: TODO: beautify translation between PyNN and HAL synapse row indices
             # here to local parameter in case another projection is added and
@@ -1644,8 +1650,8 @@ class HWAccess:
             mem = numpy.array(self.sp.readFastAdc(), numpy.float)
             self.timeReadAdc += time.time() - startTime
             mem = mem - offset
-            mem = mem / slope
-            mem = mem / 1e3  # from mV to V
+            mem = old_div(mem, slope)
+            mem = old_div(mem, 1e3)  # from mV to V
         else:
             mem = numpy.arange(numpy.power(42, 5))  # dummy data
         return mem
@@ -1677,7 +1683,7 @@ class HWAccess:
 
     def resetVoutNeuron(self):
         '''Reset all vout values affecting neuron parameters'''
-        neuronParamIDs = range(8) + [16, 17]
+        neuronParamIDs = list(range(8)) + [16, 17]
         for blockID in range(default.numBlocks):
             for neuronParamID in neuronParamIDs:
                 self.vouts[blockID][neuronParamID] = default.vouts[

@@ -24,7 +24,12 @@ modules.
     
 $Id$
 """
+from __future__ import print_function
 
+from builtins import zip
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 import nest
 from pyNN import common, random
 import logging
@@ -157,7 +162,7 @@ def create_cells(cellclass, cellparams=None, n=1, parent=None):
         raise Exception("Invalid cell type: %s" % type(cellclass))
     try:
         cell_gids = nest.Create(nest_model, n)
-    except nest.NESTError, errmsg:
+    except nest.NESTError as errmsg:
         raise common.InvalidModelError(errmsg)
     if cell_parameters:
         try:
@@ -166,7 +171,7 @@ def create_cells(cellclass, cellparams=None, n=1, parent=None):
                 cell_parameters['V_m'] = v_init
             nest.SetStatus(cell_gids, [cell_parameters])
         except nest.NESTError:
-            print "NEST error when trying to set the following dictionary: %s" % cell_parameters
+            print("NEST error when trying to set the following dictionary: %s" % cell_parameters)
             raise
     first_id = cell_gids[0]
     last_id = cell_gids[-1]
@@ -240,7 +245,7 @@ class Connection(object):
     delay  = property(_get_delay, _set_delay)
     
 
-class ConnectionManager:
+class ConnectionManager(object):
     """
     Manage synaptic connections, providing methods for creating, listing,
     accessing individual connections.
@@ -333,7 +338,7 @@ class ConnectionManager:
         
         try:
             nest.DivergentConnect([source], targets, weights, delays, self.synapse_model)            
-        except nest.NESTError, e:
+        except nest.NESTError as e:
             raise common.ConnectionError("%s. source=%s, targets=%s, weights=%s, delays=%s, synapse model='%s'" % (
                                          e, source, targets, weights, delays, self.synapse_model))
         self._connections = None # reset the caching of the connection list, since this will have to be recalculated
@@ -374,7 +379,7 @@ class ConnectionManager:
                
         try:
             nest.ConvergentConnect(sources, [target], weights, delays, self.synapse_model)            
-        except nest.NESTError, e:
+        except nest.NESTError as e:
             raise common.ConnectionError("%s. sources=%s, target=%s, weights=%s, delays=%s, synapse model='%s'" % (
                                          e, sources, target, weights, delays, self.synapse_model))
         self._connections = None # reset the caching of the connection list, since this will have to be recalculated
@@ -462,7 +467,7 @@ class ConnectionManager:
                 addr = (conn['source']-offset[0], conn['target']-offset[1])
                 try:
                     val = value[addr]
-                except IndexError, e:
+                except IndexError as e:
                     raise IndexError("%s. addr=%s" % (e, addr))
                 if numpy.isnan(val):
                     raise Exception("Array contains no value for synapse from %d to %d" % (c.source, c.target))
@@ -500,7 +505,7 @@ class ConnectionManager:
         i = 0
         try:
             nest.SetStatus(self.connections, name, value)
-        except nest.NESTError, e:
+        except nest.NESTError as e:
             n = 1
             if hasattr(value, '__len__'):
                 n = len(value)

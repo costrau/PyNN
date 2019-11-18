@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 
 # [dep/fac][U][tau] [Vdtc/Vstdf/Vfac]
@@ -94,4 +95,4 @@ def get_stp_params(stp_type, U, tau):
     return data[:, clip(data[0], tau)]
 
 if __name__ == "__main__":
-    print get_stp_params('fac', 1, 120)
+    print(get_stp_params('fac', 1, 120))

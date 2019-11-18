@@ -1,6 +1,9 @@
 # coding: utf-8
 """Writes documentation for the API in MediaWiki, Trac or LateX format."""
+from __future__ import print_function
 
+from builtins import str
+from builtins import object
 import sys
 import re
 from itertools import chain
@@ -92,9 +95,9 @@ def _(str):
     return s.strip()
 
 def funcArgs(func):
-    if hasattr(func,'im_func'):
-        func = func.im_func
-    code = func.func_code
+    if hasattr(func,'__func__'):
+        func = func.__func__
+    code = func.__code__
     fname = code.co_name
     callargs = code.co_argcount
     args = code.co_varnames[:callargs]
@@ -106,17 +109,17 @@ def func_sig(func, format):
        Keyword initializers are also shown using
        repr(). Representations longer than 100 bytes are truncated.
     """
-    if hasattr(func,'im_func'): # func is a method
-        func = func.im_func
+    if hasattr(func,'__func__'): # func is a method
+        func = func.__func__
     try:
-        code = func.func_code
+        code = func.__code__
         fname = code.co_name
         callargs = code.co_argcount
         # XXX Uses hard coded values taken from Include/compile.h
         args = list(code.co_varnames[:callargs])
-        if func.func_defaults:
-            i = len(args) - len(func.func_defaults)
-            for default in func.func_defaults:
+        if func.__defaults__:
+            i = len(args) - len(func.__defaults__)
+            for default in func.__defaults__:
                 if isinstance(default,float):
                     r = str(default)
                 else:
@@ -234,7 +237,7 @@ class DictData(object):
     def render(self, format):
         s = format["dict"] % self.name
         s += format["table_begin"]
-        for k,v in self.D.items():
+        for k,v in list(self.D.items()):
             #if output == 'latex':
             #    v = str(v).replace('{',' $\\lbrace$').replace('}',' $\\rbrace$')
             s += format["table_row"] % (k,v)
@@ -378,4 +381,4 @@ if __name__ == "__main__":
         outputStr = outputStr.replace('__','!__')
         outputStr = outputStr.replace('@@','__')
         outputStr = camelcase.sub(r'!\1',outputStr)
-    print outputStr
+    print(outputStr)

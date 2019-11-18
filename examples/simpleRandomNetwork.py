@@ -7,6 +7,7 @@ August 2006, November 2009
 
 $Id$
 """
+from __future__ import print_function
 
 import logging
 import socket
@@ -33,22 +34,22 @@ cell_params = {'tau_refrac': 2.0,  # ms
 n_record = 5
 
 node = setup(timestep=0.025, min_delay=1.0, max_delay=1.0, debug=True, quit_on_end=False)
-print "Process with rank %d running on %s" % (node, socket.gethostname())
+print("Process with rank %d running on %s" % (node, socket.gethostname()))
 
 
 rng = NumpyRNG(seed=seed, parallel_safe=True, rank=rank(), num_processes=num_processes())
 
-print "[%d] Creating populations" % node
+print("[%d] Creating populations" % node)
 n_spikes = int(2*tstop*input_rate/1000.0)
 spike_times = numpy.add.accumulate(rng.next(n_spikes, 'exponential',
                                             [1000.0/input_rate], mask_local=False))
 
 input_population  = Population(2, SpikeSourceArray, {'spike_times': spike_times }, "input")
 output_population = Population(2, IF_curr_exp, cell_params, "output")
-print "[%d] input_population cells: %s" % (node, input_population.local_cells)
-print "[%d] output_population cells: %s" % (node, output_population.local_cells)
+print("[%d] input_population cells: %s" % (node, input_population.local_cells))
+print("[%d] output_population cells: %s" % (node, output_population.local_cells))
 
-print "[%d] Connecting populations" % node
+print("[%d] Connecting populations" % node)
 connector = FixedProbabilityConnector(0.5, weights=1.0)
 projection = Projection(input_population, output_population, connector, rng=rng)
 
@@ -59,16 +60,16 @@ input_population.record()
 output_population.record()
 output_population.record_v(n_record, rng)
 
-print "[%d] Running simulation" % node
+print("[%d] Running simulation" % node)
 run(tstop)
 
-print "[%d] Writing spikes to disk" % node
+print("[%d] Writing spikes to disk" % node)
 output_population.printSpikes('%s_output.ras' % file_stem)
 input_population.printSpikes('%s_input.ras' % file_stem)
-print "[%d] Writing Vm to disk" % node
+print("[%d] Writing Vm to disk" % node)
 output_population.print_v('%s.v' % file_stem)
 
-print "[%d] Finishing" % node
+print("[%d] Finishing" % node)
 end()
-print "[%d] Done" % node
+print("[%d] Done" % node)
 

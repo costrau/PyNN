@@ -1,5 +1,7 @@
 """ tests if calibrated refractory periods are set correctly"""
+from __future__ import print_function
 
+from builtins import range
 import numpy as np
 import matplotlib.pyplot as plt
 import pyNN.hardware.spikey as p
@@ -12,7 +14,7 @@ import random
 import os
 
 ######################### neurons and tau_ref values to be measured ######
-neuronIDs = range(192, 384)
+neuronIDs = list(range(192, 384))
 
 # tau_ref value (in ms) at which to compare calibrated and uncalibrated
 # tau_ref of individual neurons
@@ -126,10 +128,10 @@ def testNeuron(neuronNr, tau_ref_target, calibIcb=True, tries=5, workstation=Non
     while tries < 5 and (len(spikesDig) < runs - 1 or len(spikesDig) > runs + 1):
         if len(spikesDig) < runs - 1:
             inputParameters['weight'] += inputParameters['weightIncrement']
-            print 'increasing weight to {0}, try {1}'.format(inputParameters['weight'], tries)
+            print('increasing weight to {0}, try {1}'.format(inputParameters['weight'], tries))
         else:
             inputParameters['weight'] -= inputParameters['weightIncrement']
-            print 'decreasing weight to {0}, try {1}'.format(inputParameters['weight'], tries)
+            print('decreasing weight to {0}, try {1}'.format(inputParameters['weight'], tries))
         conn = p.AllToAllConnector(
             allow_self_connections=False, weights=inputParameters['weight'])
         proj = p.Projection(input, neuron, conn,
@@ -187,7 +189,7 @@ def test_calib_range(neuronIDs, tau_ref_values, filename='calib_range.txt', work
                 outfile.close()
 
     if plotOnly and not os.path.isfile(filename):
-        print 'Cannot plot data, no file {0} exists'.format(filename)
+        print('Cannot plot data, no file {0} exists'.format(filename))
         return
     # plot results
     if fig == None:
@@ -197,11 +199,11 @@ def test_calib_range(neuronIDs, tau_ref_values, filename='calib_range.txt', work
     faultyNeurons_recorded = pickle.load(data)
     data.close()
     if len(meanTau_all) == 0:
-        print 'No data was recorded for given neurons'
+        print('No data was recorded for given neurons')
         return fig
-    print 'Set tau_ref / measured tau_ref / error of measured tau_ref / measured neurons / neurons for which measuring tau_ref failed'
-    print meanTau_all
-    print 'Faulty neurons are:', faultyNeurons_recorded
+    print('Set tau_ref / measured tau_ref / error of measured tau_ref / measured neurons / neurons for which measuring tau_ref failed')
+    print(meanTau_all)
+    print('Faulty neurons are:', faultyNeurons_recorded)
     ax = fig.add_subplot(111)
     ax.errorbar(meanTau_all[:, 0], meanTau_all[:, 1], yerr=meanTau_all[
                 :, 2], fmt='bo', label='all neurons')
@@ -241,12 +243,12 @@ def compare_neurons(neuronIDs, tau_ref, filename='calib_vs_uncalib.txt', worksta
             if tau_calib == -1 or tau_uncalib == -1:
                 faultyNeurons.append(neuron)
 
-            print '###################### result for neuron {0} #################'.format(neuron)
-            print 'set refractory period is {0} ms'.format(tau_ref)
-            print 'mean tau_ref after {0} measurements:'.format(tries)
-            print 'calibrated: {0} +/- {1} ms'.format(tau_calib, tau_calib_err)
-            print 'uncalibrated: {0} +/- {1} ms'.format(tau_uncalib, tau_uncalib_err)
-            print '##############################################################'
+            print('###################### result for neuron {0} #################'.format(neuron))
+            print('set refractory period is {0} ms'.format(tau_ref))
+            print('mean tau_ref after {0} measurements:'.format(tries))
+            print('calibrated: {0} +/- {1} ms'.format(tau_calib, tau_calib_err))
+            print('uncalibrated: {0} +/- {1} ms'.format(tau_uncalib, tau_uncalib_err))
+            print('##############################################################')
 
         tau_all_calib = np.array(tau_all_calib)
         tau_all_uncalib = np.array(tau_all_uncalib)
@@ -263,7 +265,7 @@ def compare_neurons(neuronIDs, tau_ref, filename='calib_vs_uncalib.txt', worksta
 
     # plot recorded data
     if plotOnly and not os.path.isfile(filename):
-        print 'cannot plot data, no file {0} exists'.format(filename)
+        print('cannot plot data, no file {0} exists'.format(filename))
         return
     data = open(filename)
     tau_ref = pickle.load(data)
@@ -284,7 +286,7 @@ def compare_neurons(neuronIDs, tau_ref, filename='calib_vs_uncalib.txt', worksta
     if fig == None:
         fig = plt.figure()
     if len(toPlot_calib) == 0:
-        print 'No data for neurons {0} in file {1}'.format(neuronIDs, filename)
+        print('No data for neurons {0} in file {1}'.format(neuronIDs, filename))
         return fig
     ax = fig.add_subplot(111)
     ax.errorbar(toPlot_calib[:, 0], toPlot_calib[:, 1],
@@ -325,5 +327,5 @@ compare_neurons(neuronIDs, tau_ref=tau_ref_target, plotOnly=plotOnly, faultyNeur
 test_calib_range(neuronIDs, tau_ref_values=tau_ref_range, plotOnly=plotOnly,
                  faultyNeurons=faultyNeurons, filename=file_range, saveData=saveData)
 
-print 'testing neurons {0} to {1} took {2} minutes'.format(min(neuronIDs), max(neuronIDs), (time.time() - start) / 60.)
+print('testing neurons {0} to {1} took {2} minutes'.format(min(neuronIDs), max(neuronIDs), (time.time() - start) / 60.))
 plt.show()

@@ -1,3 +1,4 @@
+from builtins import object
 from pyNN import multisim
 import unittest
 import os
@@ -40,7 +41,7 @@ class MultiSimTests(unittest.TestCase):
         
     def test_iter(self):
         nets = [net for net in self.ms]
-        self.assertEqual(nets, self.ms.processes.values())
+        self.assertEqual(nets, list(self.ms.processes.values()))
 
 
 # ==============================================================================

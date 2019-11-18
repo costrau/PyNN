@@ -6,6 +6,7 @@ Attributes:
     state -- a singleton instance of the _State class.
 $Id$
 """
+from builtins import object
 import pyNN.hardware.spikey
 from pyNN import common, recording, random
 

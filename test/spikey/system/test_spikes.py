@@ -2,6 +2,11 @@
 
 # last seen on 2015-06-10 by TP
 
+from __future__ import division
+from __future__ import print_function
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import time
 import numpy as np
 
@@ -41,7 +46,7 @@ def test_compareSpikesToMembrane_restOverThresh():
 
     for trial in range(trials):
         neuronNo = np.random.random_integers(0, 191)
-        print 'Using neuron number', neuronNo
+        print('Using neuron number', neuronNo)
 
         pynn.setup(mappingOffset=neuronNo)
 
@@ -57,11 +62,11 @@ def test_compareSpikesToMembrane_restOverThresh():
         spikes = neuron.getSpikes()[:, 1]
         pynn.end()
 
-        print 'Mean membrane:', np.mean(mem)
+        print('Mean membrane:', np.mean(mem))
         noSpikes = len(spikes)
-        print 'Number of spikes:', noSpikes
+        print('Number of spikes:', noSpikes)
         assert noSpikes > freqLimit * \
-            (duration / 1e3), 'Too less spikes: ' + str(noSpikes)
+            (old_div(duration, 1e3)), 'Too less spikes: ' + str(noSpikes)
 
         spikesMem, deriv, thresh = spikesFromMem(memTime, mem)
 
@@ -85,11 +90,11 @@ def test_compareSpikesToMembrane_restOverThresh():
         missingAnalog += len(isiAnalog[isiAnalog > isiAnalogMean * 1.5])
         missingAnalog += len(isiAnalog[isiAnalog < isiAnalogMean * 0.5])
 
-        print 'Number of spikes (digital, analog):', len(spikes), len(spikesMem)
-        print 'Spikes missing (digital, analog):', missingDigital, missingAnalog
-        print 'Frequency (digital, analog) in 1/s:', 1e3 / isiDigitalMean, 1e3 / isiAnalogMean
-        ratioDigAna = isiDigitalMean / isiAnalogMean
-        print 'Frequency digital to analog (abs, %):', ratioDigAna, (ratioDigAna - 1.0) * 1e3
+        print('Number of spikes (digital, analog):', len(spikes), len(spikesMem))
+        print('Spikes missing (digital, analog):', missingDigital, missingAnalog)
+        print('Frequency (digital, analog) in 1/s:', old_div(1e3, isiDigitalMean), old_div(1e3, isiAnalogMean))
+        ratioDigAna = old_div(isiDigitalMean, isiAnalogMean)
+        print('Frequency digital to analog (abs, %):', ratioDigAna, (ratioDigAna - 1.0) * 1e3)
 
         assert abs(len(spikes) - len(spikesMem)
                    ) <= limitSpikesMissing, 'Numbers of digital and analog spikes differ by more than ' + str(limitSpikesMissing) + '.'
@@ -128,7 +133,7 @@ def compareSpikesToMembrane(duration):
     """
     np.random.seed(int(time.time()))
     neuronNo = np.random.random_integers(0, 191)
-    print 'Using neuron number', neuronNo
+    print('Using neuron number', neuronNo)
 
     poissonParams = {'start': 100.0, 'duration': duration -
                      100.0, 'rate': 30.0}  # offset of 100 ms to get all spikes
@@ -164,13 +169,13 @@ def compareSpikesToMembrane(duration):
 
     #plot(memTime, membrane, spikes, spikesMem, deriv, thresh)
 
-    print 'Spikes and spikes on membrane:', len(spikes), '/', len(spikesMem)
-    assert len(spikes) / duration * 1e3 >= freqLimit, 'Too less spikes.'
+    print('Spikes and spikes on membrane:', len(spikes), '/', len(spikesMem))
+    assert old_div(len(spikes), duration) * 1e3 >= freqLimit, 'Too less spikes.'
     assert len(spikes) == len(spikesMem), 'Spikes do not match membrane.'
     spikesDiff = spikesMem - spikes
     spikesDiffMean = np.mean(spikesDiff)
     spikesDiffStd = np.std(spikesDiff)
-    print 'Offset between spikes and membrane:', spikesDiffMean, '+-', spikesDiffStd
+    print('Offset between spikes and membrane:', spikesDiffMean, '+-', spikesDiffStd)
     assert spikesDiffMean < meanLimit, 'Spike and membrane have too large offset.'
     assert spikesDiffStd < stdLimit, 'Time axes of spikes and membrane are different.'
 

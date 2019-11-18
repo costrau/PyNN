@@ -10,7 +10,10 @@ May 2006
 $Id$
 
 """
+from __future__ import division
+from __future__ import print_function
 
+from past.utils import old_div
 from pyNN.utility import get_script_args, Timer
 
 simulator_name = get_script_args(1)[0]  
@@ -78,13 +81,13 @@ Cext = CE               # number of external synapses on neuron
 fudge = 0.00041363506632638 # ensures dV = J at V=0  
   
 # excitatory weight: JE = J_eff / tauSyn * fudge
-JE = (J_eff/tauSyn)*fudge 
+JE = (old_div(J_eff,tauSyn))*fudge 
   
 # inhibitory weight: JI = - g * JE
 JI = -g*JE  
   
 # threshold, external, and Poisson generator rates:
-nu_thresh = theta/(J_eff*CE*tauMem)
+nu_thresh = old_div(theta,(J_eff*CE*tauMem))
 nu_ext    = eta*nu_thresh     # external rate per synapse
 p_rate    = 1000*nu_ext*Cext  # external input rate per neuron (Hz)
                                     
@@ -113,46 +116,46 @@ rank = setup(timestep=dt, max_delay=delay, **extra)
 np = num_processes()
 import socket
 host_name = socket.gethostname()
-print "Host #%d is on %s" % (rank+1, host_name)
+print("Host #%d is on %s" % (rank+1, host_name))
 
-if extra.has_key('threads'):
-    print "%d Initialising the simulator with %d threads..." %(rank, extra['threads'])
+if 'threads' in extra:
+    print("%d Initialising the simulator with %d threads..." %(rank, extra['threads']))
 else:
-    print "%d Initialising the simulator with single thread..." %(rank)
+    print("%d Initialising the simulator with single thread..." %(rank))
 
 # Small function to display information only on node 1
 def nprint(s):
     if (rank == 0):
-        print s
+        print(s)
 
 timer.start() # start timer on construction    
 
-print "%d Setting up random number generator" %rank
+print("%d Setting up random number generator" %rank)
 rng = NumpyRNG(kernelseed, parallel_safe=True, rank=rank, num_processes=np)
 
-print "%d Creating excitatory population with %d neurons." % (rank, NE)
+print("%d Creating excitatory population with %d neurons." % (rank, NE))
 E_net = Population((NE,),IF_curr_alpha,cell_params,"E_net")
 
-print "%d Creating inhibitory population with %d neurons." % (rank, NI)
+print("%d Creating inhibitory population with %d neurons." % (rank, NI))
 I_net = Population((NI,),IF_curr_alpha,cell_params,"I_net")
 
-print "%d Initialising membrane potential to random values between %g mV and %g mV." % (rank, U0, theta)
+print("%d Initialising membrane potential to random values between %g mV and %g mV." % (rank, U0, theta))
 uniformDistr = RandomDistribution('uniform', [U0,theta], rng)
 E_net.randomInit(uniformDistr)
 I_net.randomInit(uniformDistr)
 
-print "%d Creating excitatory Poisson generator with rate %g spikes/s." % (rank, p_rate)
+print("%d Creating excitatory Poisson generator with rate %g spikes/s." % (rank, p_rate))
 expoisson = Population((NE,), SpikeSourcePoisson, {'rate': p_rate}, "expoisson")
 
-print "%d Creating inhibitory Poisson generator with the same rate." % rank
+print("%d Creating inhibitory Poisson generator with the same rate." % rank)
 inpoisson = Population((NI,), SpikeSourcePoisson, {'rate': p_rate}, "inpoisson")
 
 # Record spikes
-print "%d Setting up recording in excitatory population." % rank
+print("%d Setting up recording in excitatory population." % rank)
 E_net.record(Nrec)
 E_net.record_v([E_net[0],E_net[1]])
 
-print "%d Setting up recording in inhibitory population." % rank
+print("%d Setting up recording in inhibitory population." % rank)
 I_net.record(Nrec)
 I_net.record_v([I_net[0],I_net[1]])
 
@@ -160,21 +163,21 @@ E_Connector = FixedProbabilityConnector(epsilon, weights=JE, delays=delay)
 I_Connector = FixedProbabilityConnector(epsilon, weights=JI, delays=delay)
 ext_Connector = OneToOneConnector(weights=JE, delays=dt)
 
-print "%d Connecting excitatory population with connection probability %g, weight %g nA and delay %g ms." % (rank, epsilon, JE, delay)
+print("%d Connecting excitatory population with connection probability %g, weight %g nA and delay %g ms." % (rank, epsilon, JE, delay))
 E_to_E = Projection(E_net, E_net, E_Connector, rng=rng, target="excitatory")
-print "E --> E\t\t", len(E_to_E), "connections"
+print("E --> E\t\t", len(E_to_E), "connections")
 I_to_E = Projection(I_net, E_net, I_Connector, rng=rng, target="inhibitory")
-print "I --> E\t\t", len(I_to_E), "connections"
+print("I --> E\t\t", len(I_to_E), "connections")
 input_to_E = Projection(expoisson, E_net, ext_Connector, target="excitatory")
-print "input --> E\t", len(input_to_E), "connections"
+print("input --> E\t", len(input_to_E), "connections")
 
-print "%d Connecting inhibitory population with connection probability %g, weight %g nA and delay %g ms." % (rank, epsilon, JI, delay)
+print("%d Connecting inhibitory population with connection probability %g, weight %g nA and delay %g ms." % (rank, epsilon, JI, delay))
 E_to_I = Projection(E_net, I_net, E_Connector, rng=rng, target="excitatory")
-print "E --> I\t\t", len(E_to_I), "connections"
+print("E --> I\t\t", len(E_to_I), "connections")
 I_to_I = Projection(I_net, I_net, I_Connector, rng=rng, target="inhibitory")
-print "I --> I\t\t", len(I_to_I), "connections"
+print("I --> I\t\t", len(I_to_I), "connections")
 input_to_I = Projection(inpoisson, I_net, ext_Connector, target="excitatory")
-print "input --> I\t", len(input_to_I), "connections"
+print("input --> I\t", len(input_to_I), "connections")
 
 # read out time used for building
 buildCPUTime = timer.elapsedTime()
@@ -182,11 +185,11 @@ buildCPUTime = timer.elapsedTime()
 
 # run, measure computer time
 timer.start() # start timer on construction
-print "%d Running simulation for %g ms." % (rank, simtime)
+print("%d Running simulation for %g ms." % (rank, simtime))
 run(simtime)
 simCPUTime = timer.elapsedTime()
 
-print "%d Writing data to file." % rank
+print("%d Writing data to file." % rank)
 exfilename  = "Results/Brunel_exc_np%d_%s.ras" % (np, simulator_name) # output file for excit. population  
 infilename  = "Results/Brunel_inh_np%d_%s.ras" % (np, simulator_name) # output file for inhib. population  
 vexfilename = "Results/Brunel_exc_np%d_%s.v"   % (np, simulator_name) # output file for membrane potential traces

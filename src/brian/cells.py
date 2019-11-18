@@ -4,6 +4,7 @@ Standard cells for the brian module
 $Id$
 """
 
+from builtins import object
 from pyNN import common, cells
 #import brian_no_units_no_warnings
 from brian.library.synapses import *

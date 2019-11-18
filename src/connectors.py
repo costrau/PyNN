@@ -14,6 +14,10 @@ Base Connector classes with default implementation.
 $Id$
 """
 
+from builtins import next
+from builtins import zip
+from builtins import range
+from builtins import object
 import logging
 import numpy
 from numpy import arccos, arcsin, arctan, arctan2, ceil, cos, cosh, e, exp, \
@@ -28,7 +32,7 @@ class ConstIter(object):
     """An iterator that always returns the same value."""
     def __init__(self, x):
         self.x = x
-    def next(self):
+    def __next__(self):
         return self.x
 
 
@@ -201,7 +205,7 @@ class FromListConnector(Connector):
     def connect(self, projection):
         """Connect-up a Projection."""
         # slow: should maybe sort by pre
-        for i in xrange(len(self.conn_list)):
+        for i in range(len(self.conn_list)):
             src, tgt, weight, delay = self.conn_list[i][:]
             src = projection.pre[tuple(src)]           
             tgt = projection.post[tuple(tgt)]
@@ -299,7 +303,7 @@ class FixedNumberPostConnector(Connector):
         for source in projection.pre.all_cells.flat:
             # pick n neurons at random
             if hasattr(self, 'rand_distr'):
-                n = self.rand_distr.next()
+                n = next(self.rand_distr)
             else:
                 n = self.n
 
@@ -381,7 +385,7 @@ class FixedNumberPreConnector(Connector):
         for target in projection.post.local_cells.flat:
             # pick n neurons at random
             if hasattr(self, 'rand_distr'):
-                n = self.rand_distr.next()
+                n = next(self.rand_distr)
             else:
                 n = self.n
 
@@ -517,7 +521,7 @@ class DistanceDependentProbabilityConnector(ProbabilisticConnector):
         try:
             d = 0; assert 0 <= eval(d_expression), eval(d_expression)
             d = 1e12; assert 0 <= eval(d_expression), eval(d_expression)
-        except ZeroDivisionError, err:
+        except ZeroDivisionError as err:
             raise ZeroDivisionError("Error in the distance expression %s. %s" % (d_expression, err))
         self.d_expression = d_expression
         self.space = space
