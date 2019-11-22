@@ -24,7 +24,7 @@ export PATH=$PATH:{0}/bin"""
 def build(bld):
     this_dir = bld.path.get_src().abspath()
     # FIXME: ask distutils/setup.py for relative site-package path (to prefix)
-    bld.exec_command('python setup.py install --prefix={}'.format(bld.env.PREFIX), cwd=this_dir)
+    bld.exec_command('{} setup.py install --prefix={}'.format(bld.env.PYTHON[0], bld.env.PREFIX), cwd=this_dir)
 
     ver = '.'.join([str(x) for x in sys.version_info[:2]])
     bld(
